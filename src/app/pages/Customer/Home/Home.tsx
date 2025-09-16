@@ -75,7 +75,7 @@ export default function Home() {
               <div className="mt-4">
                 <button
                   type="button"
-                  onClick={() => { window.location.href = '/src/app/pages/Customer/Home/game.html'; }}
+                  onClick={() => { window.location.href = '/game.html'; }}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-full shadow hover:bg-red-700 transition"
                   aria-label="Mở trò chơi Chiến Sĩ Kháng Chiến">
                   🎮 Chơi ngay
