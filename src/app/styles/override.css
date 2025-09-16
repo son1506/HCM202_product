@@ -24,3 +24,25 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
 } */
+
+/* Added global animations and utility classes used by Home.tsx */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 1s ease-out;
+}
+
+/* replicate hover:shadow-3xl used in Home.tsx */
+.hover\\:shadow-3xl:hover {
+  box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25);
+}

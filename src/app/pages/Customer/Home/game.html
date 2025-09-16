@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chiến Sĩ Kháng Chiến - Tư Tưởng Hồ Chí Minh</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(45deg, #2c3e50, #34495e, #27ae60);
+            background-size: 400% 400%;
+            animation: battlefieldMove 15s ease infinite;
+            min-height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+        
+        @keyframes battlefieldMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%);
+        }
+        
+        .hud {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+        }
+        
+        .stat-panel {
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            border: 2px solid #e74c3c;
+            backdrop-filter: blur(10px);
+            pointer-events: auto;
+        }
+        
+        .health-bar, .spirit-bar {
+            width: 200px;
+            height: 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            margin: 5px 0;
+            overflow: hidden;
+            border: 1px solid #fff;
+        }
+        
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        
+        .spirit-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f1c40f, #f39c12);
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        
+        .battlefield {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(46, 125, 50, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 69, 19, 0.3) 0%, transparent 50%);
+        }
+        
+        .player {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            font-size: 40px;
+            transition: none;
+            z-index: 100;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .enemy {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            font-size: 35px;
+            z-index: 50;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            filter: drop-shadow(0 0 8px rgba(255,0,0,0.5));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .bullet {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, #ffff00, #ff6b00);
+            border-radius: 50%;
+            z-index: 75;
+            box-shadow: 0 0 10px #ffff00;
+        }
+        
+        .enemy-bullet {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: radial-gradient(circle, #ff0000, #8b0000);
+            border-radius: 50%;
+            z-index: 75;
+            box-shadow: 0 0 8px #ff0000;
+        }
+        
+        .explosion {
+            position: absolute;
+            font-size: 60px;
+            z-index: 200;
+            animation: explode 0.5s ease-out forwards;
+            pointer-events: none;
+        }
+        
+        @keyframes explode {
+            0% { 
+                transform: scale(0.1);
+                opacity: 1;
+            }
+            100% { 
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+        
+        .question-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            border: 3px solid #e74c3c;
+            z-index: 2000;
+            max-width: 600px;
+            width: 90%;
+            backdrop-filter: blur(15px);
+        }
+        
+        .question-text {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #ecf0f1;
+        }
+        
+        .answer-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .answer-btn {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .answer-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .answer-btn.correct {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+        }
+        
+        .answer-btn.incorrect {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+        
+        .instructions {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 0.9em;
+            backdrop-filter: blur(10px);
+            pointer-events: none;
+        }
+        
+        .wave-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            color: #e74c3c;
+            font-weight: bold;
+            z-index: 1500;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            animation: waveAnnounce 2s ease-out forwards;
+            pointer-events: none;
+        }
+        
+        @keyframes waveAnnounce {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            50% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+        
+        .game-over-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            backdrop-filter: blur(15px);
+        }
+        
+        .game-over-content {
+            text-align: center;
+            color: white;
+            background: rgba(231, 76, 60, 0.2);
+            padding: 40px;
+            border-radius: 20px;
+            border: 3px solid #e74c3c;
+        }
+        
+        .restart-btn {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .explanation {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="hud">
+            <div class="stat-panel">
+                <div>🇻🇳 Chiến Sĩ Kháng Chiến</div>
+                <div class="health-bar">
+                    <div class="health-fill" id="health-bar"></div>
+                </div>
+                <div>Máu: <span id="health-text">100</span></div>
+            </div>
+            
+            <div style="text-align: center; color: white; font-size: 1.5em; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
+                <div>🏆 Điểm: <span id="score">0</span></div>
+                <div>⚡ Làn: <span id="wave">1</span></div>
+            </div>
+            
+            <div class="stat-panel">
+                <div>💪 Tinh Thần Cách Mạng</div>
+                <div class="spirit-bar">
+                    <div class="spirit-fill" id="spirit-bar"></div>
+                </div>
+                <div>Năng lượng: <span id="spirit-text">100</span></div>
+            </div>
+        </div>
+        
+        <div class="battlefield" id="battlefield">
+            <div class="player" id="player">🪖</div>
+        </div>
+        
+        <div class="instructions">
+            <strong>Điều khiển:</strong><br>
+            ⌨️ WASD hoặc ←→↑↓: Di chuyển<br>
+            🖱️ Click chuột: Bắn đạn<br>
+            💡 Trả lời đúng câu hỏi để được buff!
+        </div>
+        
+        <div class="question-popup" id="question-popup" style="display: none;">
+            <div class="question-text" id="question-text"></div>
+            <div class="answer-options" id="answer-options"></div>
+            <div class="explanation" id="explanation"></div>
+        </div>
+        
+        <div class="game-over-screen" id="game-over">
+            <div class="game-over-content">
+                <h1>🇻🇳 Kết Thúc Nhiệm Vụ! 🇻🇳</h1>
+                <div style="font-size: 1.5em; margin: 20px 0;">
+                    Điểm cuối: <span id="final-score">0</span><br>
+                    Làn đạt được: <span id="final-wave">1</span>
+                </div>
+                <p>Bạn đã chiến đấu dũng cảm vì tư tưởng Hồ Chí Minh!</p>
+                <button class="restart-btn" onclick="restartGame()">🔄 Chiến Đấu Lại</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game variables
+        let player = { x: 400, y: 500, health: 100, spirit: 100 };
+        let enemies = [];
+        let bullets = [];
+        let enemyBullets = [];
+        let score = 0;
+        let wave = 1;
+        let gameRunning = true;
+        let questionActive = false;
+        let keys = {};
+        let lastEnemySpawn = 0;
+        let currentQuestionIndex = 0;
+        
+        // Questions
+        const questions = [
+            {
+                question: "Theo tư tưởng Hồ Chí Minh, điều gì là sức mạnh của nhân dân trong kháng chiến?",
+                answers: ["Vũ khí tốt", "Đoàn kết một lòng", "Số lượng đông", "Chiến thuật hay"],
+                correct: 1,
+                explanation: "Hồ Chí Minh luôn nhấn mạnh 'Đoàn kết, đoàn kết, đại đoàn kết' là sức mạnh vô địch."
+            },
+            {
+                question: "Phương châm kháng chiến của Hồ Chí Minh là gì?",
+                answers: ["Nhanh chiến nhanh thắng", "Toàn dân, toàn diện, trường kỳ", "Chỉ dựa vào quân đội", "Tấn công thẳng"],
+                correct: 1,
+                explanation: "Kháng chiến 'toàn dân, toàn diện, trường kỳ' là chiến lược đúng đắn của Bác Hồ."
+            },
+            {
+                question: "Tư tưởng nào của Hồ Chí Minh về xây dựng con người?",
+                answers: ["Con người là máy móc", "Con người là yếu tố quyết định", "Chỉ cần tài năng", "Chỉ cần đức tính"],
+                correct: 1,
+                explanation: "Bác Hồ luôn coi con người là yếu tố quyết định mọi thành công của cách mạng."
+            },
+            {
+                question: "Hồ Chí Minh nói: 'Không có gì quý hơn...'?",
+                answers: ["Hòa bình", "Độc lập tự do", "Đoàn kết", "Thành công"],
+                correct: 1,
+                explanation: "'Không có gì quý hơn độc lập tự do' - câu nói bất hủ của Chủ tịch Hồ Chí Minh."
+            },
+            {
+                question: "Quan điểm của Hồ Chí Minh về đạo đức cách mạng?",
+                answers: ["Không quan trọng", "Quan trọng ngang tài năng", "Chỉ dành cho lãnh đạo", "Đức trước, tài sau"],
+                correct: 3,
+                explanation: "'Đức trước, tài sau' - đạo đức là gốc, tài năng là ngọn trong tư tưởng Hồ Chí Minh."
+            }
+        ];
+        
+        const enemyTypes = ["🏰", "⚔️", "🛡️", "👑", "🏴‍☠️"];
+        
+        // Event listeners
+        document.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (!questionActive && gameRunning) {
+                shootBullet(e.clientX, e.clientY);
+            }
+        });
+        
+        // Initialize game
+        function initGame() {
+            player.x = window.innerWidth / 2 - 25;
+            player.y = window.innerHeight - 100;
+            updatePlayerPosition();
+            updateUI();
+            
+            // Start spawning enemies
+            setInterval(spawnEnemy, 2000);
+            
+            // Start game loop
+            gameLoop();
+        }
+        
+        function updatePlayerPosition() {
+            const playerEl = document.getElementById('player');
+            playerEl.style.left = player.x + 'px';
+            playerEl.style.top = player.y + 'px';
+        }
+        
+        function updateUI() {
+            document.getElementById('health-text').textContent = Math.max(0, player.health);
+            document.getElementById('spirit-text').textContent = Math.max(0, player.spirit);
+            document.getElementById('score').textContent = score;
+            document.getElementById('wave').textContent = wave;
+            
+            document.getElementById('health-bar').style.width = Math.max(0, player.health) + '%';
+            document.getElementById('spirit-bar').style.width = Math.max(0, player.spirit) + '%';
+        }
+        
+        function handlePlayerMovement() {
+            if (!gameRunning || questionActive) return;
+            
+            const speed = 5;
+            
+            if (keys['w'] || keys['arrowup']) {
+                player.y = Math.max(0, player.y - speed);
+            }
+            if (keys['s'] || keys['arrowdown']) {
+                player.y = Math.min(window.innerHeight - 50, player.y + speed);
+            }
+            if (keys['a'] || keys['arrowleft']) {
+                player.x = Math.max(0, player.x - speed);
+            }
+            if (keys['d'] || keys['arrowright']) {
+                player.x = Math.min(window.innerWidth - 50, player.x + speed);
+            }
+            
+            updatePlayerPosition();
+        }
+        
+        function spawnEnemy() {
+            if (!gameRunning || questionActive) return;
+            
+            const enemy = {
+                id: Date.now(),
+                x: Math.random() * (window.innerWidth - 40),
+                y: -40,
+                health: 1,
+                type: enemyTypes[Math.floor(Math.random() * enemyTypes.length)],
+                lastShot: 0
+            };
+            
+            enemies.push(enemy);
+            
+            const enemyEl = document.createElement('div');
+            enemyEl.className = 'enemy';
+            enemyEl.id = 'enemy_' + enemy.id;
+            enemyEl.textContent = enemy.type;
+            enemyEl.style.left = enemy.x + 'px';
+            enemyEl.style.top = enemy.y + 'px';
+            
+            document.getElementById('battlefield').appendChild(enemyEl);
+        }
+        
+        function updateEnemies() {
+            enemies.forEach((enemy, index) => {
+                enemy.y += 2;
+                
+                const enemyEl = document.getElementById('enemy_' + enemy.id);
+                if (enemyEl) {
+                    enemyEl.style.top = enemy.y + 'px';
+                }
+                
+                // Enemy reaches bottom
+                if (enemy.y > window.innerHeight) {
+                    removeEnemy(index);
+                    player.health -= 10;
+                }
+                
+                // Enemy shooting
+                if (Date.now() - enemy.lastShot > 3000 && Math.random() < 0.02) {
+                    shootEnemyBullet(enemy.x + 20, enemy.y + 20);
+                    enemy.lastShot = Date.now();
+                }
+                
+                // Check collision with player
+                if (Math.abs(enemy.x - player.x) < 40 && Math.abs(enemy.y - player.y) < 40) {
+                    removeEnemy(index);
+                    player.health -= 20;
+                    createExplosion(enemy.x, enemy.y);
+                }
+            });
+        }
+        
+        function shootBullet(targetX, targetY) {
+            if (player.spirit < 5) return;
+            
+            player.spirit -= 5;
+            
+            const dx = targetX - (player.x + 25);
+            const dy = targetY - (player.y + 25);
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            const bullet = {
+                id: Date.now(),
+                x: player.x + 25,
+                y: player.y + 25,
+                vx: (dx / distance) * 8,
+                vy: (dy / distance) * 8
+            };
+            
+            bullets.push(bullet);
+            
+            const bulletEl = document.createElement('div');
+            bulletEl.className = 'bullet';
+            bulletEl.id = 'bullet_' + bullet.id;
+            bulletEl.style.left = bullet.x + 'px';
+            bulletEl.style.top = bullet.y + 'px';
+            
+            document.getElementById('battlefield').appendChild(bulletEl);
+        }
+        
+        function shootEnemyBullet(x, y) {
+            const dx = player.x - x;
+            const dy = player.y - y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            const bullet = {
+                id: Date.now(),
+                x: x,
+                y: y,
+                vx: (dx / distance) * 3,
+                vy: (dy / distance) * 3
+            };
+            
+            enemyBullets.push(bullet);
+            
+            const bulletEl = document.createElement('div');
+            bulletEl.className = 'enemy-bullet';
+            bulletEl.id = 'enemybullet_' + bullet.id;
+            bulletEl.style.left = bullet.x + 'px';
+            bulletEl.style.top = bullet.y + 'px';
+            
+            document.getElementById('battlefield').appendChild(bulletEl);
+        }
+        
+        function updateBullets() {
+            // Player bullets
+            bullets.forEach((bullet, bulletIndex) => {
+                bullet.x += bullet.vx;
+                bullet.y += bullet.vy;
+                
+                const bulletEl = document.getElementById('bullet_' + bullet.id);
+                if (bulletEl) {
+                    bulletEl.style.left = bullet.x + 'px';
+                    bulletEl.style.top = bullet.y + 'px';
+                }
+                
+                // Check collision with enemies
+                enemies.forEach((enemy, enemyIndex) => {
+                    if (Math.abs(bullet.x - enemy.x - 20) < 20 && 
+                        Math.abs(bullet.y - enemy.y - 20) < 20) {
+                        enemy.health--;
+                        removeBullet(bulletIndex);
+                        createExplosion(enemy.x, enemy.y);
+                        
+                        if (enemy.health <= 0) {
+                            removeEnemy(enemyIndex);
+                            score += 10;
+                            
+                            // Chance to show question
+                            if (Math.random() < 0.3) {
+                                showQuestion();
+                            }
+                        }
+                    }
+                });
+                
+                // Remove bullets off screen
+                if (bullet.x < 0 || bullet.x > window.innerWidth || 
+                    bullet.y < 0 || bullet.y > window.innerHeight) {
+                    removeBullet(bulletIndex);
+                }
+            });
+            
+            // Enemy bullets
+            enemyBullets.forEach((bullet, bulletIndex) => {
+                bullet.x += bullet.vx;
+                bullet.y += bullet.vy;
+                
+                const bulletEl = document.getElementById('enemybullet_' + bullet.id);
+                if (bulletEl) {
+                    bulletEl.style.left = bullet.x + 'px';
+                    bulletEl.style.top = bullet.y + 'px';
+                }
+                
+                // Check collision with player
+                if (Math.abs(bullet.x - player.x - 25) < 25 && 
+                    Math.abs(bullet.y - player.y - 25) < 25) {
+                    removeEnemyBullet(bulletIndex);
+                    player.health -= 15;
+                    createExplosion(player.x, player.y);
+                }
+                
+                // Remove bullets off screen
+                if (bullet.x < 0 || bullet.x > window.innerWidth || 
+                    bullet.y < 0 || bullet.y > window.innerHeight) {
+                    removeEnemyBullet(bulletIndex);
+                }
+            });
+        }
+        
+        function removeBullet(index) {
+            if (bullets[index]) {
+                const bulletEl = document.getElementById('bullet_' + bullets[index].id);
+                if (bulletEl) bulletEl.remove();
+                bullets.splice(index, 1);
+            }
+        }
+        
+        function removeEnemyBullet(index) {
+            if (enemyBullets[index]) {
+                const bulletEl = document.getElementById('enemybullet_' + enemyBullets[index].id);
+                if (bulletEl) bulletEl.remove();
+                enemyBullets.splice(index, 1);
+            }
+        }
+        
+        function removeEnemy(index) {
+            if (enemies[index]) {
+                const enemyEl = document.getElementById('enemy_' + enemies[index].id);
+                if (enemyEl) enemyEl.remove();
+                enemies.splice(index, 1);
+            }
+        }
+        
+        function createExplosion(x, y) {
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            explosion.textContent = '💥';
+            explosion.style.left = x + 'px';
+            explosion.style.top = y + 'px';
+            
+            document.getElementById('battlefield').appendChild(explosion);
+            
+            setTimeout(() => {
+                if (explosion.parentNode) {
+                    explosion.remove();
+                }
+            }, 500);
+        }
+        
+        function showQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                currentQuestionIndex = 0;
+            }
+            
+            questionActive = true;
+            const question = questions[currentQuestionIndex];
+            
+            document.getElementById('question-text').textContent = question.question;
+            
+            const optionsContainer = document.getElementById('answer-options');
+            optionsContainer.innerHTML = '';
+            
+            question.answers.forEach((answer, index) => {
+                const button = document.createElement('button');
+                button.className = 'answer-btn';
+                button.textContent = answer;
+                button.onclick = () => selectAnswer(index);
+                optionsContainer.appendChild(button);
+            });
+            
+            document.getElementById('explanation').style.display = 'none';
+            document.getElementById('question-popup').style.display = 'block';
+        }
+        
+        function selectAnswer(selectedIndex) {
+            const question = questions[currentQuestionIndex];
+            const buttons = document.querySelectorAll('.answer-btn');
+            
+            buttons.forEach(btn => btn.disabled = true);
+            
+            if (selectedIndex === question.correct) {
+                buttons[selectedIndex].classList.add('correct');
+                player.health = Math.min(100, player.health + 20);
+                player.spirit = Math.min(100, player.spirit + 30);
+                score += 50;
+            } else {
+                buttons[selectedIndex].classList.add('incorrect');
+                buttons[question.correct].classList.add('correct');
+            }
+            
+            document.getElementById('explanation').textContent = question.explanation;
+            document.getElementById('explanation').style.display = 'block';
+            
+            setTimeout(() => {
+                document.getElementById('question-popup').style.display = 'none';
+                questionActive = false;
+                currentQuestionIndex++;
+            }, 3000);
+        }
+        
+        function checkGameOver() {
+            if (player.health <= 0) {
+                gameRunning = false;
+                document.getElementById('final-score').textContent = score;
+                document.getElementById('final-wave').textContent = wave;
+                document.getElementById('game-over').style.display = 'flex';
+            }
+        }
+        
+        function restartGame() {
+            // Reset game state
+            player = { x: window.innerWidth / 2 - 25, y: window.innerHeight - 100, health: 100, spirit: 100 };
+            enemies = [];
+            bullets = [];
+            enemyBullets = [];
+            score = 0;
+            wave = 1;
+            gameRunning = true;
+            questionActive = false;
+            currentQuestionIndex = 0;
+            
+            // Clear battlefield
+            const battlefield = document.getElementById('battlefield');
+            Array.from(battlefield.children).forEach(child => {
+                if (child.id !== 'player') {
+                    child.remove();
+                }
+            });
+            
+            // Hide game over screen
+            document.getElementById('game-over').style.display = 'none';
+            
+            // Reset player position
+            updatePlayerPosition();
+            updateUI();
+        }
+        
+        function gameLoop() {
+            if (!gameRunning) {
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+            
+            handlePlayerMovement();
+            updateEnemies();
+            updateBullets();
+            
+            // Regenerate spirit slowly
+            if (player.spirit < 100) {
+                player.spirit = Math.min(100, player.spirit + 0.2);
+            }
+            
+            updateUI();
+            checkGameOver();
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Start the game
+        window.addEventListener('load', () => {
+            initGame();
+        });
+    </script>
+</body>
+</html>
