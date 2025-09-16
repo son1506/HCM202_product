@@ -69,20 +69,20 @@ export default function Home() {
             </section>
 
             <div className="text-center mt-8">
-                <p className="text-sm text-gray-600 bg-white/70 backdrop-blur-sm px-4 py-2 rounded-full inline-block shadow-lg">
-                  © {new Date().getFullYear()} - Tư tưởng Hồ Chí Minh
-                </p>
+              <p className="text-sm text-gray-600 bg-white/70 backdrop-blur-sm px-4 py-2 rounded-full inline-block shadow-lg">
+                © {new Date().getFullYear()} - Tư tưởng Hồ Chí Minh
+              </p>
 
-                {/* Button to open the standalone game HTML */}
-                <div className="mt-4">
-                  <button
-                    type="button"
-                    onClick={() => { window.location.href = '/src/app/pages/Customer/Home/game.html'; }}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-full shadow hover:bg-red-700 transition"
-                    aria-label="Mở trò chơi Chiến Sĩ Kháng Chiến">
-                    🎮 Chơi ngay
-                  </button>
-                </div>
+              {/* Button to open the standalone game HTML */}
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={() => { window.location.href = '/src/app/pages/Customer/Home/game.html'; }}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-full shadow hover:bg-red-700 transition"
+                  aria-label="Mở trò chơi Chiến Sĩ Kháng Chiến">
+                  🎮 Chơi ngay
+                </button>
+              </div>
             </div>
           </div>
         </div>
