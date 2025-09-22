@@ -101,6 +101,23 @@
             align-items: center;
             justify-content: center;
         }
+        .boss-enemy {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            font-size: 70px;
+            z-index: 60;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.9);
+            filter: drop-shadow(0 0 20px rgba(255,0,0,0.8));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: bossPulse 2s ease-in-out infinite;
+        }
+        @keyframes bossPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
         .bullet {
             position: absolute;
             width: 8px;
@@ -118,6 +135,15 @@
             border-radius: 50%;
             z-index: 75;
             box-shadow: 0 0 8px #ff0000;
+        }
+        .boss-bullet {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: radial-gradient(circle, #ff00ff, #800080);
+            border-radius: 50%;
+            z-index: 75;
+            box-shadow: 0 0 15px #ff00ff;
         }
         .explosion {
             position: absolute;
@@ -141,8 +167,8 @@
             border-radius: 20px;
             border: 3px solid #e74c3c;
             z-index: 2000;
-            max-width: 800px;
-            width: 90%;
+            max-width: 900px;
+            width: 95%;
             backdrop-filter: blur(15px);
         }
         .question-text {
@@ -162,6 +188,7 @@
         .difficulty-medium { color: #f39c12; }
         .difficulty-hard { color: #e74c3c; }
         .difficulty-expert { color: #9b59b6; }
+        .difficulty-nightmare { color: #ff0066; }
         .answer-options {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -283,7 +310,9 @@
         ⌨️ WASD hoặc ←→↑↓: Di chuyển<br>
         🖱️ Click chuột: Bắn đạn<br>
         💡 Trả lời đúng câu hỏi để được buff!<br>
-        ⏰ Câu hỏi có giới hạn thời gian!
+        ⏰ Câu hỏi có giới hạn thời gian!<br>
+        🔥 Boss xuất hiện từ làn 10!<br>
+        📈 Độ khó tăng theo điểm: 500, 1000, 2000, 3500
     </div>
 
     <div class="question-popup" id="question-popup" style="display: none;">
@@ -376,6 +405,10 @@ class SoundManager {
     this._noise({ dur: 0.22, vol: 0.6, lp: 1400 });
     setTimeout(() => this._tone({ freq: 80, type: "sine", dur: 0.2, attack: 0.005, decay: 0.22, vol: 0.5 }), 10);
   }
+  bossExplosion() {
+    this._noise({ dur: 0.5, vol: 0.8, lp: 800 });
+    setTimeout(() => this._tone({ freq: 60, type: "sine", dur: 0.4, attack: 0.01, decay: 0.4, vol: 0.7 }), 20);
+  }
   popup() { this._tone({ freq: 600, dur: 0.06, type: "triangle", vol: 0.35 }); }
   correct() {
     [880, 1175, 1480].forEach((f, i) => setTimeout(() => this._tone({ freq: f, type: "sine", dur: 0.08, vol: 0.5 }), i * 90));
@@ -388,6 +421,9 @@ class SoundManager {
   }
   gameover() {
     [440, 330, 220, 150].forEach((f, i) => setTimeout(() => this._tone({ freq: f, type: "triangle", dur: 0.18, vol: 0.6 }), i * 160));
+  }
+  bossWarning() {
+    [200, 400, 200, 400].forEach((f, i) => setTimeout(() => this._tone({ freq: f, type: "sawtooth", dur: 0.3, vol: 0.6 }), i * 300));
   }
   startBGM() {
     if (!this.enabled || this._bgmTimer) return;
@@ -420,8 +456,9 @@ let questionTimer = null;
 let questionTimeLeft = 0;
 let currentDifficulty = 'easy';
 let maxDifficultyReached = 'easy';
+let bossActive = false;
 
-// Enhanced Questions based on the script provided
+// Cập nhật câu hỏi với ngưỡng điểm mới và nhiều câu hỏi hơn
 const questions = {
   easy: [
     {
@@ -453,90 +490,69 @@ const questions = {
       timeLimit: 15
     },
     {
+      question: "Nhà nước do ai lập nên theo tư tưởng Hồ Chí Minh?",
+      answers: ["Do nhân dân lập nên", "Do chính phủ thành lập", "Do quân đội xây dựng", "Do các đảng phái tạo ra"],
+      correct: 0,
+      explanation: "Nhà nước do nhân dân lập nên thông qua hình thức bầu cử tự do, dân chủ.",
+      timeLimit: 14
+    },
+    {
       question: "Dân chủ là để làm gì theo Hồ Chí Minh?",
-      answers: ["Để dân được nói ý kiến", "Để tăng quyền lực", "Để kiểm soát dân", "Để tạo trật tự"],
+      answers: ["Để dân được nói, bày tỏ ý kiến", "Để dân được nghe lệnh", "Để dân được bảo vệ", "Để dân được học tập"],
       correct: 0,
       explanation: "'Dân chủ là để làm sao cho dân được mở miệng ra, được nói, được bày tỏ ý kiến của mình.'",
-      timeLimit: 12
+      timeLimit: 16
     },
     {
-      question: "Hồ Chí Minh yêu cầu cán bộ phải có phẩm chất gì?",
-      answers: ["Cần, kiệm, liêm, chính", "Giàu có, quyền lực", "Thông minh, lanh lợi", "Nhanh nhẹn, khéo léo"],
-      correct: 0,
-      explanation: "Hồ Chí Minh yêu cầu mọi cán bộ, đảng viên phải cần, kiệm, liêm, chính, chí công vô tư.",
-      timeLimit: 15
-    },
-    {
-      question: "Theo Hồ Chí Minh, nhân dân có quyền gì với đại biểu không xứng đáng?",
-      answers: ["Có quyền bãi miễn họ", "Phải chờ hết nhiệm kỳ", "Không được làm gì", "Chỉ được khuyên nhủ"],
+      question: "Nhân dân có quyền gì với những đại biểu không xứng đáng?",
+      answers: ["Có quyền bãi miễn", "Chỉ được góp ý", "Phải chờ hết nhiệm kỳ", "Không được làm gì"],
       correct: 0,
       explanation: "Nếu những đại biểu được nhân dân lựa chọn không còn xứng đáng, nhân dân có quyền bãi miễn.",
       timeLimit: 18
     },
     {
-      question: "Hồ Chí Minh ví tham nhũng như gì?",
-      answers: ["Như giặc nội xâm", "Như bệnh thường thấy", "Như khuyết điểm nhỏ", "Như sai lầm bình thường"],
+      question: "Theo Hồ Chí Minh, nhân dân tham gia quản lý nhà nước qua hình thức nào?",
+      answers: ["Bầu cử, ứng cử, đóng góp ý kiến", "Chỉ thông qua bầu cử", "Chỉ được đóng góp ý kiến", "Chỉ được ứng cử"],
       correct: 0,
-      explanation: "Người ví tham nhũng, quan liêu như 'giặc nội xâm', nguy hiểm không kém giặc ngoại xâm.",
-      timeLimit: 15
+      explanation: "Người dân tham gia vào quản lý thông qua bầu cử, ứng cử, đóng góp ý kiến, phản biện xã hội.",
+      timeLimit: 20
+    },
+    {
+      question: "Bản chất dân chủ của nhà nước XHCN Việt Nam thể hiện ở điều gì?",
+      answers: ["Quyền lực thuộc về nhân dân", "Chính phủ mạnh mẽ", "Quân đội hùng mạnh", "Kinh tế phát triển"],
+      correct: 0,
+      explanation: "Thể hiện bản chất dân chủ của nhà nước xã hội chủ nghĩa Việt Nam - quyền lực thuộc về nhân dân.",
+      timeLimit: 17
+    },
+    {
+      question: "Nhà nước phải xuất phát từ điều gì theo Hồ Chí Minh?",
+      answers: ["Từ lợi ích nhân dân", "Từ lợi ích quốc gia", "Từ truyền thống dân tộc", "Từ xu hướng thế giới"],
+      correct: 0,
+      explanation: "Nhà nước do nhân dân lập nên, phục vụ lợi ích nhân dân.",
+      timeLimit: 16
     }
   ],
   medium: [
     {
-      question: "Hồ Chí Minh coi Đảng vừa là người lãnh đạo, vừa là gì?",
-      answers: ["Người đầy tớ trung thành của dân", "Người giám sát xã hội", "Người ra quyết định cuối cùng", "Người điều hành bộ máy"],
+      question: "Theo Hồ Chí Minh, nhân dân thực hiện quyền lực nhà nước qua hình thức nào?",
+      answers: ["Trực tiếp hoặc gián tiếp qua QH, HĐND", "Chỉ thông qua bầu cử", "Chỉ thông qua đại biểu", "Chỉ thông qua Mặt trận"],
       correct: 0,
-      explanation: "Hồ Chí Minh coi Đảng là 'người lãnh đạo, đồng thời là người đầy tớ trung thành của nhân dân'.",
+      explanation: "Nhân dân trực tiếp hoặc gián tiếp thông qua Quốc hội, Hội đồng nhân dân thực hiện quyền lực nhà nước.",
       timeLimit: 20
     },
     {
-      question: "Theo Hồ Chí Minh, vũ khí sắc bén để xây dựng Đảng là gì?",
-      answers: ["Tự phê bình và phê bình", "Kỷ luật nghiêm minh", "Học tập không ngừng", "Đoàn kết nội bộ"],
+      question: "Hồ Chí Minh coi việc xây dựng Nhà nước trong sạch, vững mạnh là gì?",
+      answers: ["Yếu tố sống còn của chế độ", "Nhiệm vụ quan trọng", "Mục tiêu lâu dài", "Ước mơ cao đẹp"],
       correct: 0,
-      explanation: "Hồ Chí Minh coi tự phê bình và phê bình là 'vũ khí sắc bén' để xây dựng Đảng.",
+           explanation: "Hồ Chí Minh luôn coi việc xây dựng một Nhà nước trong sạch, vững mạnh là yếu tố sống còn của chế độ.",
       timeLimit: 22
     },
     {
-      question: "Chủ nghĩa cá nhân được Hồ Chí Minh gọi là gì?",
-      answers: ["Giặc nội xâm nguy hiểm", "Tư tưởng lạc hậu", "Quan điểm sai lầm", "Thói quen xấu"],
+      question: "Trong sạch có nghĩa là không có những gì theo Hồ Chí Minh?",
+      answers: ["Không tham nhũng, đặc quyền, xa dân", "Chỉ không tham nhũng", "Chỉ không có đặc quyền", "Chỉ không xa rời nhân dân"],
       correct: 0,
-      explanation: "Chủ nghĩa cá nhân là 'giặc nội xâm', là nguyên nhân của tham nhũng, quan liêu.",
-      timeLimit: 18
-    },
-    {
-      question: "Hồ Chí Minh yêu cầu chọn cán bộ như thế nào?",
-      answers: ["Có đức, có tài, vừa hồng vừa chuyên", "Chỉ cần có tài năng cao", "Chỉ cần trung thành với Đảng", "Chỉ cần có kinh nghiệm lâu năm"],
-      correct: 0,
-      explanation: "Hồ Chí Minh yêu cầu chọn người có đức, có tài, vừa 'hồng' vừa 'chuyên'.",
+      explanation: "Trong sạch có nghĩa là không tham nhũng, không đặc quyền đặc lợi, không xa rời nhân dân.",
       timeLimit: 25
-    },
-    {
-      question: "Theo Hồ Chí Minh, cán bộ là gốc của điều gì?",
-      answers: ["Gốc của mọi công việc", "Gốc của sự phát triển", "Gốc của niềm tin", "Gốc của quyền lực"],
-      correct: 0,
-      explanation: "'Cán bộ là gốc của mọi công việc' - quan điểm quan trọng của Hồ Chí Minh.",
-      timeLimit: 20
-    },
-    {
-      question: "Nhà nước pháp quyền XHCN quản lý xã hội bằng gì?",
-      answers: ["Quản lý bằng pháp luật", "Quản lý bằng mệnh lệnh", "Quản lý bằng truyền thống", "Quản lý bằng kinh nghiệm"],
-      correct: 0,
-      explanation: "Nhà nước pháp quyền XHCN là nhà nước quản lý xã hội bằng pháp luật.",
-      timeLimit: 22
-    },
-    {
-      question: "Hồ Chí Minh nói nếu để hỏng cán bộ sẽ làm hỏng gì?",
-      answers: ["Hỏng công việc và cả chế độ", "Chỉ hỏng công việc hiện tại", "Chỉ hỏng uy tín cá nhân", "Chỉ hỏng một bộ phận nhỏ"],
-      correct: 0,
-            explanation: "'Nếu để hỏng cán bộ thì sẽ làm hỏng công việc và hỏng cả chế độ.' - lời cảnh báo của Bác Hồ.",
-      timeLimit: 25
-    },
-    {
-      question: "Pháp luật phải phản ánh điều gì theo tư tưởng Hồ Chí Minh?",
-      answers: ["Ý chí, lợi ích của nhân dân", "Ý chí của nhà lãnh đạo", "Truyền thống dân tộc", "Xu hướng thế giới"],
-      correct: 0,
-      explanation: "Pháp luật phải phản ánh ý chí, lợi ích của nhân dân.",
-      timeLimit: 20
     },
     {
       question: "Theo Hồ Chí Minh, quyền lực nhà nước phải được như thế nào?",
@@ -546,41 +562,55 @@ const questions = {
       timeLimit: 22
     },
     {
-      question: "Nhà nước phải tôn trọng và bảo đảm điều gì?",
-      answers: ["Quyền con người, quyền công dân", "Quyền lợi của tập thể", "Quyền của cơ quan nhà nước", "Quyền của người lãnh đạo"],
+      question: "Hồ Chí Minh yêu cầu cán bộ phải có phẩm chất gì?",
+      answers: ["Cần, kiệm, liêm, chính", "Thông minh, khéo léo", "Mạnh mẽ, quyết đoán", "Giàu có, có thế lực"],
       correct: 0,
-      explanation: "Nhà nước phải tôn trọng, bảo vệ và bảo đảm quyền con người, quyền công dân.",
+      explanation: "Mọi cán bộ, đảng viên phải cần, kiệm, liêm, chính, chí công vô tư.",
+      timeLimit: 18
+    },
+    {
+      question: "Hồ Chí Minh ví tham nhũng, quan liêu như gì?",
+      answers: ["Như giặc nội xâm", "Như bệnh nan y", "Như thảm họa thiên nhiên", "Như kẻ thù ngoại bang"],
+      correct: 0,
+      explanation: "Người ví tham nhũng, quan liêu như 'giặc nội xâm', nguy hiểm không kém giặc ngoại xâm.",
       timeLimit: 20
+    },
+    {
+      question: "Theo Hồ Chí Minh, bộ máy nhà nước phải như thế nào?",
+      answers: ["Gọn nhẹ, hiệu quả, gần dân", "To lớn, uy quyền", "Phức tạp, chặt chẽ", "Đơn giản, thụ động"],
+      correct: 0,
+      explanation: "Xây dựng bộ máy gọn nhẹ, hiệu quả, gần gũi với nhân dân.",
+      timeLimit: 24
+    },
+    {
+      question: "Hồ Chí Minh nói: 'Cán bộ là gốc của...'?",
+      answers: ["Mọi công việc", "Sự thành công", "Cách mạng", "Đất nước"],
+      correct: 0,
+      explanation: "Cán bộ là gốc của mọi công việc - nhấn mạnh vai trò quan trọng của đội ngũ cán bộ.",
+      timeLimit: 16
+    },
+    {
+      question: "Theo Hồ Chí Minh, chọn cán bộ phải chọn người như thế nào?",
+      answers: ["Có đức, có tài", "Chỉ có tài năng", "Chỉ có đạo đức", "Có quan hệ tốt"],
+      correct: 0,
+      explanation: "Hồ Chí Minh yêu cầu chọn người có đức, có tài, vừa 'hồng' vừa 'chuyên'.",
+      timeLimit: 19
+    },
+    {
+      question: "Nhà nước pháp quyền XHCN là nhà nước quản lý xã hội bằng gì?",
+      answers: ["Bằng pháp luật", "Bằng quyền lực", "Bằng truyền thống", "Bằng kinh nghiệm"],
+      correct: 0,
+      explanation: "Nhà nước pháp quyền XHCN là nhà nước quản lý xã hội bằng pháp luật, bảo đảm quyền lực thuộc về nhân dân.",
+      timeLimit: 23
     }
   ],
   hard: [
     {
-      question: "Theo Hồ Chí Minh, một dân tộc, một Đảng sẽ mất sức hấp dẫn nếu điều gì?",
-      answers: ["Nếu lòng dạ không trong sáng nữa", "Nếu thiếu tài năng", "Nếu không có quyền lực", "Nếu không được ủng hộ"],
+      question: "Hồ Chí Minh khẳng định bản chất của nhà nước dân chủ là 'bao nhiêu lợi ích đều vì dân, bao nhiêu quyền hạn đều của dân'. Điều này thể hiện nguyên tắc nào?",
+      answers: ["Dân là chủ thể tối cao quyền lực", "Nhà nước là trung tâm quyền lực", "Đảng lãnh đạo tuyệt đối", "Chính phủ điều hành mọi việc"],
       correct: 0,
-      explanation: "'...nếu lòng dạ không trong sáng nữa, nếu sa vào chủ nghĩa cá nhân' - lời cảnh báo sâu sắc của Bác Hồ.",
+      explanation: "Thể hiện sâu sắc quan điểm dân là chủ, dân là chủ thể tối cao của quyền lực nhà nước.",
       timeLimit: 30
-    },
-    {
-      question: "Hồ Chí Minh yêu cầu kiên quyết chống các căn bệnh nào?",
-      answers: ["Quan liêu, tham ô, lãng phí", "Cá nhân chủ nghĩa đơn thuần", "Thiếu kỷ luật tổ chức", "Không học hỏi tiến bộ"],
-      correct: 0,
-      explanation: "Hồ Chí Minh yêu cầu kiên quyết chống các căn bệnh: quan liêu, tham ô, lãng phí.",
-      timeLimit: 28
-    },
-    {
-      question: "Theo Hồ Chí Minh, bộ máy nhà nước phải được xây dựng như thế nào?",
-      answers: ["Gọn nhẹ, hiệu quả, gần dân", "To lớn, uy quyền, mạnh mẽ", "Phức tạp, chuyên nghiệp", "Đơn giản, dễ quản lý"],
-      correct: 0,
-      explanation: "Xây dựng bộ máy gọn nhẹ, hiệu quả, gần gũi với nhân dân.",
-      timeLimit: 25
-    },
-    {
-      question: "Hồ Chí Minh nhấn mạnh cán bộ phải có thái độ gì với nhân dân?",
-      answers: ["Gần dân, hiểu dân, học dân", "Dạy dân, dẫn dắt dân", "Quản lý dân, kiểm soát dân", "Bảo vệ dân, che chở dân"],
-      correct: 0,
-      explanation: "Người yêu cầu cán bộ phải gần dân, hiểu dân, tôn trọng dân và phục vụ nhân dân tận tụy.",
-      timeLimit: 25
     },
     {
       question: "Theo Hồ Chí Minh, nguồn gốc quyền lực nhà nước từ đâu mà ra?",
@@ -590,111 +620,11 @@ const questions = {
       timeLimit: 28
     },
     {
-      question: "Hồ Chí Minh coi việc xây dựng Nhà nước trong sạch, vững mạnh là gì?",
-      answers: ["Yếu tố sống còn của chế độ", "Nhiệm vụ quan trọng", "Mục tiêu lâu dài", "Ước mơ cao đẹp"],
-      correct: 0,
-      explanation: "Hồ Chí Minh luôn coi việc xây dựng một Nhà nước trong sạch, vững mạnh là yếu tố sống còn của chế độ.",
-      timeLimit: 30
-    },
-    {
-      question: "Trong sạch có nghĩa là không có những gì theo Hồ Chí Minh?",
-      answers: ["Không tham nhũng, đặc quyền, xa dân", "Chỉ không tham nhũng", "Chỉ không có đặc quyền", "Chỉ không xa rời nhân dân"],
-      correct: 0,
-      explanation: "Trong sạch có nghĩa là không tham nhũng, không đặc quyền đặc lợi, không xa rời nhân dân.",
-      timeLimit: 28
-    },
-    {
-      question: "Hồ Chí Minh yêu cầu tự phê bình và phê bình phải như thế nào?",
-      answers: ["Nghiêm túc, chân thành, cầu thị", "Nhẹ nhàng, tế nhị", "Mạnh mẽ, quyết liệt", "Linh hoạt, khéo léo"],
-      correct: 0,
-      explanation: "Phải tiến hành nghiêm túc, chân thành, cầu thị, tránh hình thức.",
-      timeLimit: 25
-    },
-    {
-      question: "Theo Hồ Chí Minh, cán bộ, đảng viên phải đặt gì lên trên hết?",
-      answers: ["Lợi ích nhân dân, đất nước", "Lợi ích cá nhân chính đáng", "Lợi ích tập thể cơ quan", "Lợi ích gia đình"],
-      correct: 0,
-      explanation: "Cán bộ, đảng viên phải đặt lợi ích của nhân dân, của đất nước lên trên hết.",
-      timeLimit: 25
-    },
-    {
-      question: "Hồ Chí Minh nhấn mạnh phải ngăn chặn tình trạng gì trong bộ máy?",
-      answers: ["Lạm quyền, lợi ích nhóm", "Thiếu chuyên môn", "Không đoàn kết", "Làm việc chậm chạp"],
-      correct: 0,
-      explanation: "Ngăn chặn tình trạng lạm quyền, lợi ích nhóm.",
-      timeLimit: 22
-    }
-  ],
-  expert: [
-    {
-      question: "Hồ Chí Minh khẳng định bản chất của nhà nước dân chủ là 'bao nhiêu lợi ích đều vì dân, bao nhiêu quyền hạn đều của dân'. Điều này thể hiện nguyên tắc nào?",
-      answers: ["Dân là chủ thể tối cao quyền lực", "Nhà nước là trung tâm quyền lực", "Đảng lãnh đạo tuyệt đối", "Chính phủ điều hành mọi việc"],
-      correct: 0,
-      explanation: "Thể hiện sâu sắc quan điểm dân là chủ, dân là chủ thể tối cao của quyền lực nhà nước.",
-      timeLimit: 35
-    },
-    {
-      question: "Theo tư tưởng Hồ Chí Minh, nhân dân thực hiện quyền lực nhà nước qua hình thức nào?",
-      answers: ["Trực tiếp hoặc gián tiếp qua QH, HĐND", "Chỉ thông qua bầu cử", "Chỉ thông qua đại biểu", "Chỉ thông qua Mặt trận"],
-      correct: 0,
-      explanation: "Nhân dân trực tiếp hoặc gián tiếp thông qua Quốc hội, Hội đồng nhân dân thực hiện quyền lực nhà nước.",
-      timeLimit: 40
-    },
-    {
-      question: "Hồ Chí Minh nói: 'Một dân tộc, một Đảng... không nhất định hôm nay và ngày mai vẫn được mọi người yêu mến nếu...' điều gì?",
-      answers: ["Sa vào chủ nghĩa cá nhân", "Thiếu năng lực lãnh đạo", "Không theo kịp thời đại", "Mất đi sức mạnh quân sự"],
-      correct: 0,
-      explanation: "'...nếu lòng dạ không trong sáng nữa, nếu sa vào chủ nghĩa cá nhân' - cảnh báo về nguy cơ từ bên trong.",
-      timeLimit: 38
-    },
-    {
-      question: "Trong tư tưởng Hồ Chí Minh về xây dựng Đảng, nguyên tắc 'tập trung dân chủ' kết hợp với những nguyên tắc nào?",
-      answers: ["Tự phê bình và gần dân, hiểu dân", "Chỉ tự phê bình và phê bình", "Chỉ gần dân, hiểu dân, học dân", "Kỷ luật và đoàn kết"],
-      correct: 0,
-      explanation: "Tư tưởng xây dựng Đảng bao gồm tập trung dân chủ, tự phê bình và phê bình, gần dân, hiểu dân, học dân.",
-      timeLimit: 40
-    },
-    {
-      question: "Theo Hồ Chí Minh, đặc điểm của nhà nước pháp quyền XHCN là bảo đảm điều gì?",
-      answers: ["Quyền lực thuộc về nhân dân", "Pháp luật cao nhất", "Chính phủ mạnh mẽ", "Trật tự xã hội"],
-      correct: 0,
-      explanation: "Nhà nước pháp quyền XHCN quản lý xã hội bằng pháp luật, bảo đảm quyền lực thuộc về nhân dân.",
-      timeLimit: 35
-    },
-    {
       question: "Hồ Chí Minh nhấn mạnh phòng chống tham nhũng có ý nghĩa gì đối với chế độ?",
       answers: ["Củng cố niềm tin dân với Đảng, Nhà nước", "Chỉ để trừng phạt kẻ xấu", "Tạo sự sợ hãi trong cán bộ", "Thể hiện quyền lực pháp luật"],
       correct: 0,
       explanation: "Phòng, chống tham nhũng góp phần củng cố niềm tin của nhân dân vào Đảng và Nhà nước.",
-      timeLimit: 38
-    },
-    {
-      question: "Trong quan điểm của Hồ Chí Minh, việc 'xây dựng đội ngũ cán bộ trẻ, tạo nguồn kế cận vững vàng' thể hiện tư tưởng gì?",
-      answers: ["Phát triển bền vững, lâu dài", "Thay đổi thế hệ lãnh đạo", "Đổi mới tư duy quản lý", "Tăng cường sức trẻ"],
-      correct: 0,
-      explanation: "Thể hiện tầm nhìn phát triển bền vững, đảm bảo sự kế thừa và phát triển lâu dài của cách mạng.",
-      timeLimit: 40
-    },
-    {
-      question: "Hồ Chí Minh coi 'dân vận' là công tác có ý nghĩa như thế nào?",
-      answers: ["Vận động quần chúng tham gia cách mạng", "Giáo dục chính trị cho dân", "Tuyên truyền đường lối Đảng", "Quản lý và điều hành dân chúng"],
-      correct: 0,
-      explanation: "'Dân vận' là công tác vận động quần chúng nhân dân tham gia cách mạng - nền tảng sức mạnh của Đảng.",
-      timeLimit: 35
-    },
-    {
-      question: "Theo Hồ Chí Minh, 'cải cách hành chính' cần đạt được mục tiêu nào quan trọng nhất?",
-      answers: ["Bộ máy tinh gọn, hiệu quả phục vụ dân", "Tăng quyền lực cho cơ quan nhà nước", "Giảm chi phí ngân sách", "Tăng tốc độ xử lý công việc"],
-      correct: 0,
-      explanation: "Bộ máy nhà nước phải tinh gọn, hoạt động hiệu lực, hiệu quả, phục vụ nhân dân tốt nhất.",
-      timeLimit: 38
-    },
-    {
-      question: "Trong tư tưởng Hồ Chí Minh về nhà nước 'của dân, do dân, vì dân', yếu tố nào được coi là cốt lõi nhất?",
-      answers: ["Nhân dân là nguồn gốc mọi quyền lực", "Nhà nước phục vụ nhân dân", "Nhân dân giám sát nhà nước", "Nhà nước bảo vệ nhân dân"],
-      correct: 0,
-      explanation: "Cốt lõi là khẳng định nhân dân là nguồn gốc, chủ thể của mọi quyền lực nhà nước.",
-      timeLimit: 40
+      timeLimit: 32
     },
     {
       question: "Hồ Chí Minh nhấn mạnh 'kiểm soát quyền lực nhà nước' nhằm ngăn chặn nguy cơ nào?",
@@ -704,16 +634,196 @@ const questions = {
       timeLimit: 35
     },
     {
+      question: "Theo Hồ Chí Minh, tự phê bình và phê bình là gì của Đảng?",
+      answers: ["Vũ khí sắc bén xây dựng Đảng", "Phương pháp học tập", "Hình thức kỷ luật", "Cách thức đoàn kết"],
+      correct: 0,
+      explanation: "Hồ Chí Minh coi tự phê bình và phê bình là 'vũ khí sắc bén' để xây dựng Đảng.",
+      timeLimit: 27
+    },
+    {
+      question: "Hồ Chí Minh cảnh báo chủ nghĩa cá nhân là gì?",
+      answers: ["Giặc nội xâm", "Tệ nạn xã hội", "Sai lầm tư tưởng", "Khuyết điểm cá nhân"],
+      correct: 0,
+      explanation: "Chủ nghĩa cá nhân là 'giặc nội xâm', là nguyên nhân của tham nhũng, quan liêu.",
+      timeLimit: 25
+    },
+    {
+      question: "Theo Hồ Chí Minh, pháp luật phải phản ánh điều gì?",
+      answers: ["Ý chí, lợi ích của nhân dân", "Chủ trương của Đảng", "Yêu cầu của thời đại", "Kinh nghiệm quốc tế"],
+      correct: 0,
+      explanation: "Pháp luật phải phản ánh ý chí, lợi ích của nhân dân.",
+      timeLimit: 26
+    },
+    {
+      question: "Cải cách hành chính cần đạt mục tiêu gì theo tư tưởng Hồ Chí Minh?",
+      answers: ["Bộ máy tinh gọn, hiệu quả", "Tăng quyền lực cơ quan", "Giảm chi phí ngân sách", "Tăng tốc độ xử lý"],
+      correct: 0,
+      explanation: "Bộ máy nhà nước phải tinh gọn, hoạt động hiệu lực, hiệu quả, phục vụ nhân dân tốt nhất.",
+      timeLimit: 29
+    },
+    {
+      question: "Theo Hồ Chí Minh, nhà nước phải tôn trọng và bảo đảm điều gì?",
+      answers: ["Quyền con người, quyền công dân", "Quyền lực nhà nước", "Quyền của cán bộ", "Quyền của tập thể"],
+      correct: 0,
+      explanation: "Nhà nước phải tôn trọng, bảo vệ và bảo đảm quyền con người, quyền công dân.",
+      timeLimit: 28
+    },
+    {
+      question: "Hồ Chí Minh nói: 'Nếu để hỏng cán bộ thì sẽ...'?",
+      answers: ["Làm hỏng công việc và cả chế độ", "Mất uy tín với dân", "Không hoàn thành nhiệm vụ", "Gây thiệt hại kinh tế"],
+      correct: 0,
+      explanation: "'Cán bộ là công bộc của dân. Nếu để hỏng cán bộ thì sẽ làm hỏng công việc và hỏng cả chế độ.'",
+      timeLimit: 31
+    }
+  ],
+  expert: [
+    {
+      question: "Hồ Chí Minh nói: 'Một dân tộc, một Đảng... không nhất định hôm nay và ngày mai vẫn được mọi người yêu mến nếu...' điều gì?",
+      answers: ["Sa vào chủ nghĩa cá nhân", "Thiếu năng lực lãnh đạo", "Không theo kịp thời đại", "Mất đi sức mạnh quân sự"],
+      correct: 0,
+      explanation: "'...nếu lòng dạ không trong sáng nữa, nếu sa vào chủ nghĩa cá nhân' - cảnh báo về nguy cơ từ bên trong.",
+      timeLimit: 40
+    },
+    {
       question: "Theo Hồ Chí Minh, ý nghĩa sâu xa của việc 'tăng cường sự giám sát của nhân dân, Mặt trận và báo chí' là gì?",
       answers: ["Thể hiện bản chất dân chủ thực sự", "Tăng cường kiểm tra kỷ luật", "Phát hiện sai phạm kịp thời", "Tạo áp lực với cán bộ"],
       correct: 0,
       explanation: "Thể hiện bản chất dân chủ thực sự của chế độ, đảm bảo quyền làm chủ của nhân dân.",
+      timeLimit: 42
+    },
+    {
+      question: "Hồ Chí Minh coi Đảng vừa là người lãnh đạo, vừa là gì với đặc điểm gì về mối quan hệ với nhân dân?",
+      answers: ["Người đầy tớ trung thành của dân", "Người giám sát xã hội", "Người ra quyết định cuối cùng", "Người điều hành bộ máy"],
+      correct: 0,
+      explanation: "Hồ Chí Minh coi Đảng là 'người lãnh đạo, đồng thời là người đầy tớ trung thành của nhân dân'.",
+      timeLimit: 38
+    },
+    {
+      question: "Trong tư tưởng Hồ Chí Minh về xây dựng Đảng, nguyên tắc 'tập trung dân chủ' kết hợp với những nguyên tắc nào để đảm bảo hiệu quả lãnh đạo?",
+      answers: ["Tự phê bình và gần dân, hiểu dân", "Chỉ tự phê bình và phê bình", "Chỉ gần dân, hiểu dân, học dân", "Kỷ luật và đoàn kết"],
+      correct: 0,
+      explanation: "Tư tưởng xây dựng Đảng bao gồm tập trung dân chủ, tự phê bình và phê bình, gần dân, hiểu dân, học dân.",
+      timeLimit: 45
+    },
+    {
+      question: "Theo Hồ Chí Minh, việc 'xây dựng đội ngũ cán bộ trẻ, tạo nguồn kế cận vững vàng' thể hiện tư tưởng gì?",
+      answers: ["Phát triển bền vững, lâu dài", "Thay đổi thế hệ lãnh đạo", "Đổi mới tư duy quản lý", "Tăng cường sức trẻ"],
+      correct: 0,
+      explanation: "Thể hiện tầm nhìn phát triển bền vững, đảm bảo sự kế thừa và phát triển lâu dài của cách mạng.",
       timeLimit: 40
+    },
+    {
+      question: "Hồ Chí Minh nhấn mạnh 'cải cách hành chính' cần đạt được mục tiêu nào quan trọng nhất?",
+      answers: ["Bộ máy tinh gọn, hiệu quả phục vụ dân", "Tăng quyền lực cho cơ quan nhà nước", "Giảm chi phí ngân sách", "Tăng tốc độ xử lý công việc"],
+      correct: 0,
+      explanation: "Bộ máy nhà nước phải tinh gọn, hoạt động hiệu lực, hiệu quả, phục vụ nhân dân tốt nhất.",
+      timeLimit: 43
+    },
+    {
+      question: "Trong tư tưởng Hồ Chí Minh về nhà nước 'của dân, do dân, vì dân', yếu tố nào được coi là cốt lõi nhất?",
+      answers: ["Nhân dân là nguồn gốc mọi quyền lực", "Nhà nước phục vụ nhân dân", "Nhân dân giám sát nhà nước", "Nhà nước bảo vệ nhân dân"],
+      correct: 0,
+      explanation: "Cốt lõi là khẳng định nhân dân là nguồn gốc, chủ thể của mọi quyền lực nhà nước.",
+      timeLimit: 41
+    },
+    {
+      question: "Theo Hồ Chí Minh, việc 'đơn giản hóa thủ tục hành chính, chống quan liêu, cửa quyền' nhằm mục đích gì?",
+      answers: ["Nâng cao chất lượng phục vụ dân", "Giảm khối lượng công việc", "Tăng hiệu quả làm việc", "Tiết kiệm thời gian"],
+      correct: 0,
+      explanation: "Đơn giản hóa thủ tục hành chính, chống quan liêu, cửa quyền để nâng cao chất lượng phục vụ nhân dân.",
+      timeLimit: 39
+    },
+    {
+      question: "Hồ Chí Minh coi việc 'khuyến khích và bảo vệ người tố cáo tham nhũng' là biện pháp gì trong đấu tranh chống tham nhũng?",
+      answers: ["Phát huy dân chủ, giám sát nhân dân", "Tăng cường pháp luật", "Răn đe cán bộ", "Tạo sức ép xã hội"],
+      correct: 0,
+      explanation: "Khuyến khích và bảo vệ người tố cáo tham nhũng là cách phát huy vai trò giám sát của nhân dân.",
+      timeLimit: 44
+    },
+    {
+      question: "Trong quan điểm Hồ Chí Minh, 'tạo điều kiện để mọi người dân được sống tự do, bình đẳng và hạnh phúc' thể hiện bản chất gì của nhà nước?",
+      answers: ["Nhà nước vì dân, phục vụ dân", "Nhà nước bảo vệ trật tự", "Nhà nước quản lý xã hội", "Nhà nước thực thi pháp luật"],
+      correct: 0,
+      explanation: "Thể hiện bản chất nhà nước vì dân, phục vụ nhân dân, tạo điều kiện cho dân được hạnh phúc.",
+      timeLimit: 42
+    }
+  ],
+  nightmare: [
+    {
+      question: "Hồ Chí Minh cảnh báo: 'Một dân tộc, một Đảng... ngày hôm qua là vĩ đại... không nhất định hôm nay và ngày mai vẫn được yêu mến nếu lòng dạ không trong sáng, sa vào chủ nghĩa cá nhân'. Điều này thể hiện tư tưởng gì sâu sắc nhất?",
+      answers: ["Nguy cơ suy thoái từ bên trong", "Tầm quan trọng của đoàn kết", "Sự thay đổi của lịch sử", "Vai trò của nhân dân"],
+      correct: 0,
+      explanation: "Thể hiện tư tưởng sâu sắc về nguy cơ suy thoái, sụp đổ từ bên trong do chủ nghĩa cá nhân.",
+      timeLimit: 50
+    },
+    {
+      question: "Theo Hồ Chí Minh, việc 'phải tiến hành tự phê bình và phê bình nghiêm túc, chân thành, cầu thị, tránh hình thức' nhằm đạt được mục tiêu chiến lược nào?",
+      answers: ["Cả tập thể và cá nhân tự soi, tự sửa", "Tăng cường kỷ luật tổ chức", "Phát hiện và xử lý sai phạm", "Thống nhất tư tưởng trong Đảng"],
+      correct: 0,
+      explanation: "Mục tiêu chiến lược là để cả tập thể và cá nhân đều phải tự soi, tự sửa để hoàn thiện.",
+      timeLimit: 48
+    },
+    {
+      question: "Hồ Chí Minh khẳng định 'pháp luật phải công bằng, minh bạch, dễ hiểu, dễ thực hiện' và 'xây dựng pháp luật đồng bộ, ổn định, khả thi'. Đây là yêu cầu cốt lõi để xây dựng loại nhà nước nào?",
+      answers: ["Nhà nước pháp quyền XHCN", "Nhà nước dân chủ", "Nhà nước trong sạch", "Nhà nước vững mạnh"],
+      correct: 0,
+      explanation: "Đây là yêu cầu cốt lõi để xây dựng nhà nước pháp quyền xã hội chủ nghĩa.",
+      timeLimit: 52
+    },
+    {
+      question: "Trong tư tưởng Hồ Chí Minh, việc 'xử lý nghiêm minh mọi hành vi tham nhũng, không có vùng cấm' kết hợp với 'xây dựng đội ngũ cán bộ liêm chính, công khai tài sản' thể hiện phương châm nào?",
+      answers: ["Vừa phòng ngừa, vừa đấu tranh quyết liệt", "Chỉ tập trung vào trừng phạt", "Chỉ tập trung vào giáo dục", "Dựa vào ý thức tự giác"],
+      correct: 0,
+      explanation: "Thể hiện phương châm toàn diện: vừa phòng ngừa từ gốc, vừa đấu tranh trừng trị quyết liệt.",
+      timeLimit: 55
+    },
+    {
+      question: "Hồ Chí Minh nhấn mạnh 'chống suy thoái về tư tưởng chính trị, đạo đức, lối sống trong cán bộ, đảng viên' và 'đổi mới phương thức lãnh đạo của Đảng, gắn bó mật thiết với nhân dân'. Đây là yêu cầu để đạt được mục tiêu gì?",
+      answers: ["Nâng cao năng lực lãnh đạo của Đảng", "Tăng cường kỷ luật Đảng", "Mở rộng tổ chức Đảng", "Phát triển đảng viên mới"],
+      correct: 0,
+      explanation: "Đây là yêu cầu cốt lõi để nâng cao năng lực lãnh đạo, sức chiến đấu của Đảng.",
+      timeLimit: 50
+    },
+    {
+      question: "Theo Hồ Chí Minh, 'phòng, chống tham nhũng góp phần củng cố niềm tin của nhân dân vào Đảng và Nhà nước' và 'tạo môi trường xã hội công bằng, minh bạch'. Điều này thể hiện mối quan hệ biện chứng nào?",
+      answers: ["Giữa trong sạch và niềm tin nhân dân", "Giữa pháp luật và đạo đức", "Giữa kỷ luật và tự do", "Giữa cá nhân và tập thể"],
+      correct: 0,
+      explanation: "Thể hiện mối quan hệ biện chứng giữa việc xây dựng Đảng, Nhà nước trong sạch và niềm tin của nhân dân.",
+      timeLimit: 53
+    },
+    {
+      question: "Hồ Chí Minh coi 'giữ vững bản chất cách mạng, kiên định mục tiêu độc lập dân tộc và chủ nghĩa xã hội' là nền tảng để thực hiện nhiệm vụ nào quan trọng nhất?",
+      answers: ["Xây dựng Đảng thật sự trong sạch, vững mạnh", "Phát triển kinh tế đất nước", "Bảo vệ an ninh quốc gia", "Nâng cao đời sống nhân dân"],
+      correct: 0,
+      explanation: "Đây là nền tảng tư tưởng để thực hiện nhiệm vụ sống còn: xây dựng Đảng thật sự trong sạch, vững mạnh.",
+      timeLimit: 48
+    },
+    {
+      question: "Trong tư tưởng Hồ Chí Minh, 'hoàn thiện cơ chế kiểm soát quyền lực, không để xảy ra lạm quyền' kết hợp với 'phát huy vai trò giám sát của nhân dân, báo chí, các tổ chức xã hội' tạo nên hệ thống gì?",
+      answers: ["Kiểm soát quyền lực toàn diện", "Giám sát hành chính", "Phản biện xã hội", "Dân chủ trực tiếp"],
+      correct: 0,
+      explanation: "Tạo nên hệ thống kiểm soát quyền lực toàn diện, đa chiều từ trong ra ngoài.",
+      timeLimit: 54
+    },
+    {
+      question: "Hồ Chí Minh khẳng định 'xây dựng chính quyền điện tử, nâng cao chất lượng phục vụ nhân dân' trong bối cảnh 'đơn giản hóa thủ tục hành chính'. Đây là tư tưởng tiên phong về điều gì?",
+      answers: ["Hiện đại hóa bộ máy nhà nước", "Phát triển công nghệ", "Cải cách hành chính", "Phục vụ nhân dân"],
+      correct: 0,
+      explanation: "Thể hiện tư tưởng tiên phong về hiện đại hóa bộ máy nhà nước phục vụ nhân dân hiệu quả.",
+      timeLimit: 51
+    },
+    {
+      question: "Theo Hồ Chí Minh, 'bảo vệ uy tín, vai trò lãnh đạo của Đảng' thông qua việc 'phòng, chống tham nhũng' và 'tạo môi trường xã hội công bằng, minh bạch' thể hiện quy luật nào?",
+      answers: ["Uy tín Đảng gắn với sự trong sạch", "Lãnh đạo gắn với phục vụ", "Quyền lực gắn với trách nhiệm", "Đạo đức gắn với năng lực"],
+      correct: 0,
+      explanation: "Thể hiện quy luật: uy tín, vai trò lãnh đạo của Đảng gắn liền với sự trong sạch, vững mạnh.",
+      timeLimit: 56
     }
   ]
 };
 
 const enemyTypes = ["🏰", "⚔️", "🛡️", "👑", "🏴‍☠️", "⚡", "🔥", "💀"];
+const bossTypes = ["🐉", "👹", "💀", "👺", "🔥", "⚡"];
 
 // Sound UI binding
 const btnSound = document.getElementById('toggle-sound');
@@ -722,6 +832,7 @@ const volSlider = document.getElementById('volume');
 function enableSoundOnce() {
   if (!SND.enabled) {
     SND.init();
+    SND.startB
     SND.startBGM();
     if (btnSound) {
       btnSound.textContent = '🔇 Mute';
@@ -770,12 +881,13 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Difficulty management
+// Difficulty management - Cập nhật với ngưỡng điểm mới
 function getCurrentDifficulty() {
-  if (wave >= 20) return 'expert';
-  if (wave >= 12) return 'hard';
-  if (wave >= 6) return 'medium';
-  return 'easy';
+  if (score >= 3500) return 'nightmare';  // Nightmare từ 3500 điểm
+  if (score >= 2000) return 'expert';     // Expert từ 2000 điểm  
+  if (score >= 1000) return 'hard';       // Hard từ 1000 điểm
+  if (score >= 500) return 'medium';      // Medium từ 500 điểm
+  return 'easy';                          // Dễ từ 0-499 điểm
 }
 
 function updateDifficultyDisplay() {
@@ -784,7 +896,8 @@ function updateDifficultyDisplay() {
     'easy': 'Dễ',
     'medium': 'Trung bình', 
     'hard': 'Khó',
-    'expert': 'Chuyên gia'
+    'expert': 'Chuyên gia',
+    'nightmare': 'Ác mộng'
   };
   document.getElementById('difficulty-level').textContent = difficultyNames[difficulty];
   
@@ -792,7 +905,8 @@ function updateDifficultyDisplay() {
     'easy': '#2ecc71',
     'medium': '#f39c12',
     'hard': '#e74c3c', 
-    'expert': '#9b59b6'
+    'expert': '#9b59b6',
+    'nightmare': '#ff0066'
   };
   document.getElementById('difficulty-level').style.color = difficultyColors[difficulty];
 }
@@ -814,9 +928,6 @@ function initGame() {
   updatePlayerPosition();
   updateUI();
   updateDifficultyDisplay();
-  
-  const spawnInterval = Math.max(800, 2000 - (wave * 80));
-  setInterval(spawnEnemy, spawnInterval);
   
   gameLoop();
 }
@@ -850,19 +961,26 @@ function handlePlayerMovement() {
 function spawnEnemy() {
   if (!gameRunning || questionActive) return;
   
-  const enemyHealth = Math.floor(1 + wave / 5);
-  const enemyCount = Math.min(3, Math.floor(wave / 3) + 1);
+  // Boss spawn every 10 waves
+  if (wave % 10 === 0 && !bossActive) {
+    spawnBoss();
+    return;
+  }
+  
+  const enemyHealth = Math.floor(1 + wave / 3);  // Tăng máu quái nhanh hơn
+  const enemyCount = Math.min(5, Math.floor(wave / 2) + 1);  // Nhiều quái hơn
   
   for (let i = 0; i < enemyCount; i++) {
     const enemy = {
       id: Date.now() + Math.random() + i,
       x: Math.random() * (window.innerWidth - 40),
-      y: -40 - (i * 60),
+      y: -40 - (i * 80),
       health: enemyHealth,
       maxHealth: enemyHealth,
       type: enemyTypes[Math.floor(Math.random() * enemyTypes.length)],
       lastShot: 0,
-      speed: Math.min(4, 1 + wave * 0.1)
+      speed: Math.min(6, 1.5 + wave * 0.15),  // Tăng tốc độ
+      isBoss: false
     };
     enemies.push(enemy);
     
@@ -874,12 +992,48 @@ function spawnEnemy() {
     enemyEl.style.top  = enemy.y + 'px';
     
     if (enemy.health > 1) {
-      enemyEl.style.fontSize = (35 + enemy.health * 5) + 'px';
+      enemyEl.style.fontSize = (35 + enemy.health * 3) + 'px';
       enemyEl.style.filter = `drop-shadow(0 0 ${8 + enemy.health * 2}px rgba(255,0,0,0.8))`;
     }
     
     document.getElementById('battlefield').appendChild(enemyEl);
   }
+}
+
+function spawnBoss() {
+  bossActive = true;
+  SND.bossWarning();
+  
+  const boss = {
+    id: Date.now() + Math.random(),
+    x: window.innerWidth / 2 - 40,
+    y: -80,
+    health: Math.floor(20 + wave * 3),  // Boss có nhiều máu
+    maxHealth: Math.floor(20 + wave * 3),
+    type: bossTypes[Math.floor(Math.random() * bossTypes.length)],
+    lastShot: 0,
+    speed: Math.min(3, 1 + wave * 0.05),
+    isBoss: true,
+    shootPattern: 0
+  };
+  enemies.push(boss);
+  
+  const bossEl = document.createElement('div');
+  bossEl.className = 'boss-enemy';
+  bossEl.id = 'enemy_' + boss.id;
+  bossEl.textContent = boss.type;
+  bossEl.style.left = boss.x + 'px';
+  bossEl.style.top = boss.y + 'px';
+  
+  document.getElementById('battlefield').appendChild(bossEl);
+  
+  // Boss warning indicator
+  const warning = document.createElement('div');
+  warning.className = 'wave-indicator';
+  warning.textContent = `⚠️ BOSS XUẤT HIỆN! ⚠️`;
+  warning.style.color = '#ff0066';
+  document.body.appendChild(warning);
+  setTimeout(() => warning.remove(), 3000);
 }
 
 function updateEnemies() {
@@ -890,21 +1044,74 @@ function updateEnemies() {
 
     if (enemy.y > window.innerHeight) {
       removeEnemy(index);
-      player.health -= 10;
+      if (enemy.isBoss) bossActive = false;
+      player.health -= (enemy.isBoss ? 30 : 10);
     }
 
-    const shootChance = Math.min(0.05, 0.01 + wave * 0.002);
-    if (Date.now() - enemy.lastShot > (4000 - wave * 100) && Math.random() < shootChance) {
-      shootEnemyBullet(enemy.x + 20, enemy.y + 20);
+    // Enhanced enemy shooting patterns
+    const shootChance = enemy.isBoss ? 0.1 : Math.min(0.08, 0.02 + wave * 0.003);
+    const shootCooldown = enemy.isBoss ? (2000 - wave * 50) : (3000 - wave * 80);
+    
+    if (Date.now() - enemy.lastShot > shootCooldown && Math.random() < shootChance) {
+      if (enemy.isBoss) {
+        shootBossPattern(enemy);
+      } else {
+        shootEnemyBullet(enemy.x + 20, enemy.y + 20);
+      }
       enemy.lastShot = Date.now();
     }
 
-    if (Math.abs(enemy.x - player.x) < 40 && Math.abs(enemy.y - player.y) < 40) {
+    // Collision detection
+    const collisionDistance = enemy.isBoss ? 60 : 40;
+    if (Math.abs(enemy.x - player.x) < collisionDistance && Math.abs(enemy.y - player.y) < collisionDistance) {
       removeEnemy(index);
-      player.health -= (20 + enemy.health * 5);
-      createExplosion(enemy.x, enemy.y);
+      if (enemy.isBoss) bossActive = false;
+      player.health -= (enemy.isBoss ? 50 : 20 + enemy.health * 5);
+      createExplosion(enemy.x, enemy.y, enemy.isBoss);
     }
   });
+}
+
+function shootBossPattern(boss) {
+  // Boss bắn theo pattern phức tạp
+  const patterns = [
+    // Pattern 1: Bắn thẳng
+    () => shootBossBullet(boss.x + 40, boss.y + 40, 0, 4),
+    // Pattern 2: Bắn tán xạ
+    () => {
+      for (let i = -2; i <= 2; i++) {
+        setTimeout(() => shootBossBullet(boss.x + 40, boss.y + 40, i * 0.5, 3), i * 100);
+      }
+    },
+    // Pattern 3: Bắn theo hướng player
+    () => {
+      const dx = player.x - boss.x;
+      const dy = player.y - boss.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      shootBossBullet(boss.x + 40, boss.y + 40, (dx / distance) * 2, (dy / distance) * 3);
+    }
+  ];
+  
+  patterns[boss.shootPattern % patterns.length]();
+  boss.shootPattern++;
+}
+
+function shootBossBullet(x, y, vx, vy) {
+  const bullet = {
+    id: Date.now() + Math.random(),
+    x: x, y: y,
+    vx: vx, vy: vy
+  };
+  enemyBullets.push(bullet);
+  
+  const bulletEl = document.createElement('div');
+  bulletEl.className = 'boss-bullet';
+  bulletEl.id = 'enemybullet_' + bullet.id;
+  bulletEl.style.left = bullet.x + 'px';
+  bulletEl.style.top = bullet.y + 'px';
+  document.getElementById('battlefield').appendChild(bulletEl);
+
+  SND._tone({ freq: 300, type: 'sawtooth', dur: 0.06, vol: 0.4 });
 }
 
 function shootBullet(targetX, targetY) {
@@ -933,7 +1140,7 @@ function shootEnemyBullet(x, y) {
   const dx = player.x - x;
   const dy = player.y - y;
   const distance = Math.sqrt(dx * dx + dy * dy);
-  const speed = Math.min(5, 2 + wave * 0.1);
+  const speed = Math.min(6, 2.5 + wave * 0.15);  // Tăng tốc đạn
   
   const bullet = {
     id: Date.now() + Math.random(),
@@ -963,22 +1170,41 @@ function updateBullets() {
       bulletEl.style.top  = bullet.y + 'px';
     }
     enemies.forEach((enemy, enemyIndex) => {
-      if (Math.abs(bullet.x - enemy.x - 20) < 20 &&
-          Math.abs(bullet.y - enemy.y - 20) < 20) {
+      const hitDistance = enemy.isBoss ? 50 : 25;
+      if (Math.abs(bullet.x - enemy.x - (enemy.isBoss ? 40 : 20)) < hitDistance &&
+          Math.abs(bullet.y - enemy.y - (enemy.isBoss ? 40 : 20)) < hitDistance) {
         enemy.health--;
         removeBullet(bulletIndex);
-        createExplosion(enemy.x, enemy.y);
+        createExplosion(enemy.x, enemy.y, enemy.isBoss);
         
         if (enemy.health <= 0) {
           removeEnemy(enemyIndex);
-          score += (10 * Math.max(1, Math.floor(wave / 3)));
-          
-          const questionChance = Math.min(0.5, 0.2 + wave * 0.015);
-          if (Math.random() < questionChance) {
+          if (enemy.isBoss) {
+            bossActive = false;
+            SND.bossExplosion();
+            score += (100 * Math.max(1, Math.floor(wave / 5)));
+            
+            // Boss death triggers question
             showQuestion();
+          } else {
+            score += (15 * Math.max(1, Math.floor(wave / 3)));
+            
+            // Higher chance for questions on higher difficulties
+            const questionChances = {
+              'easy': 0.3,
+              'medium': 0.4,
+              'hard': 0.5,
+              'expert': 0.6,
+              'nightmare': 0.7
+            };
+            const difficulty = getCurrentDifficulty();
+            if (Math.random() < questionChances[difficulty]) {
+              showQuestion();
+            }
           }
           
-          if (score > 0 && score % (100 + wave * 50) === 0) {
+          // Wave progression - faster waves
+          if (score > 0 && score % (80 + wave * 30) === 0) {
             wave++;
             showWaveIndicator();
           }
@@ -997,12 +1223,13 @@ function updateBullets() {
     bullet.y += bullet.vy;
     const bulletEl = document.getElementById('enemybullet_' + bullet.id);
     if (bulletEl) {
-            bulletEl.style.top  = bullet.y + 'px';
+      bulletEl.style.left = bullet.x + 'px';
+      bulletEl.style.top  = bullet.y + 'px';
     }
     if (Math.abs(bullet.x - player.x - 25) < 25 &&
         Math.abs(bullet.y - player.y - 25) < 25) {
       removeEnemyBullet(bulletIndex);
-      player.health -= (15 + Math.floor(wave / 2));
+      player.health -= (20 + Math.floor(wave / 2));
       createExplosion(player.x, player.y);
     }
     if (bullet.x < 0 || bullet.x > window.innerWidth ||
@@ -1015,7 +1242,14 @@ function updateBullets() {
 function showWaveIndicator() {
   const indicator = document.createElement('div');
   indicator.className = 'wave-indicator';
-  indicator.textContent = `🌊 Làn ${wave} 🌊`;
+  
+  if (wave % 10 === 0) {
+    indicator.textContent = `🐉 BOSS WAVE ${wave} 🐉`;
+    indicator.style.color = '#ff0066';
+  } else {
+    indicator.textContent = `🌊 Làn ${wave} 🌊`;
+  }
+  
   document.body.appendChild(indicator);
   setTimeout(() => indicator.remove(), 2000);
 }
@@ -1044,13 +1278,19 @@ function removeEnemy(index) {
   }
 }
 
-function createExplosion(x, y) {
-  SND.explosion();
+function createExplosion(x, y, isBoss = false) {
+  if (isBoss) {
+    SND.bossExplosion();
+  } else {
+    SND.explosion();
+  }
+  
   const explosion = document.createElement('div');
   explosion.className = 'explosion';
-  explosion.textContent = '💥';
+  explosion.textContent = isBoss ? '💥💥💥' : '💥';
   explosion.style.left = x + 'px';
   explosion.style.top  = y + 'px';
+  explosion.style.fontSize = isBoss ? '80px' : '60px';
   document.getElementById('battlefield').appendChild(explosion);
   setTimeout(() => { if (explosion.parentNode) explosion.remove(); }, 500);
 }
@@ -1061,7 +1301,7 @@ function showQuestion() {
   const difficulty = getCurrentDifficulty();
   currentDifficulty = difficulty;
   
-  const difficultyLevels = ['easy', 'medium', 'hard', 'expert'];
+  const difficultyLevels = ['easy', 'medium', 'hard', 'expert', 'nightmare'];
   if (difficultyLevels.indexOf(difficulty) > difficultyLevels.indexOf(maxDifficultyReached)) {
     maxDifficultyReached = difficulty;
   }
@@ -1077,14 +1317,16 @@ function showQuestion() {
     'easy': 'DỄ',
     'medium': 'TRUNG BÌNH',
     'hard': 'KHÓ', 
-    'expert': 'CHUYÊN GIA'
+    'expert': 'CHUYÊN GIA',
+    'nightmare': 'ÁC MỘNG'
   };
   
   const difficultyClasses = {
     'easy': 'difficulty-easy',
     'medium': 'difficulty-medium',
     'hard': 'difficulty-hard',
-    'expert': 'difficulty-expert'
+    'expert': 'difficulty-expert',
+    'nightmare': 'difficulty-nightmare'
   };
   
   const indicator = document.getElementById('difficulty-indicator');
@@ -1115,7 +1357,7 @@ function showQuestion() {
   document.getElementById('explanation').style.display = 'none';
   document.getElementById('question-popup').style.display = 'block';
   
-  startQuestionTimer({ ...question, correct: newCorrectIndex });
+  startQuestionTimer(question);
 }
 
 function startQuestionTimer(question) {
@@ -1141,7 +1383,7 @@ function timeoutQuestion(question) {
   buttons.forEach(btn => btn.disabled = true);
   buttons[question.correct].classList.add('correct');
   
-  player.health -= 15;
+  player.health -= 20;  // Penalty tăng cho timeout
   
   document.getElementById('explanation').textContent = 
     `⏰ Hết thời gian! ${question.explanation}`;
@@ -1166,7 +1408,8 @@ function selectAnswer(selectedIndex, question) {
     'easy': 1,
     'medium': 1.5,
     'hard': 2,
-    'expert': 3
+    'expert': 3,
+    'nightmare': 4
   };
   
   const multiplier = difficultyMultipliers[currentDifficulty];
@@ -1174,10 +1417,10 @@ function selectAnswer(selectedIndex, question) {
   if (selectedIndex === question.correct) {
     buttons[selectedIndex].classList.add('correct');
     
-    const timeBonus = Math.floor((questionTimeLeft / question.timeLimit) * 20);
-    const healthReward = Math.floor((20 + timeBonus) * multiplier);
-    const spiritReward = Math.floor((30 + timeBonus) * multiplier);
-    const scoreReward = Math.floor((50 + timeBonus * 2) * multiplier);
+    const timeBonus = Math.floor((questionTimeLeft / question.timeLimit) * 30);
+    const healthReward = Math.floor((25 + timeBonus) * multiplier);
+    const spiritReward = Math.floor((35 + timeBonus) * multiplier);
+    const scoreReward = Math.floor((75 + timeBonus * 3) * multiplier);
     
     player.health = Math.min(100, player.health + healthReward);
     player.spirit = Math.min(100, player.spirit + spiritReward);
@@ -1191,7 +1434,7 @@ function selectAnswer(selectedIndex, question) {
     buttons[selectedIndex].classList.add('incorrect');
     buttons[question.correct].classList.add('correct');
     
-    const healthPenalty = Math.floor(10 * multiplier);
+    const healthPenalty = Math.floor(15 * multiplier);
     player.health -= healthPenalty;
     
     SND.incorrect();
@@ -1218,7 +1461,8 @@ function checkGameOver() {
       'easy': 'Dễ',
       'medium': 'Trung bình',
       'hard': 'Khó',
-      'expert': 'Chuyên gia'
+      'expert': 'Chuyên gia',
+      'nightmare': 'Ác mộng'
     };
     document.getElementById('final-difficulty').textContent = difficultyNames[maxDifficultyReached];
     
@@ -1240,6 +1484,7 @@ function restartGame() {
   currentQuestionIndex = 0;
   currentDifficulty = 'easy';
   maxDifficultyReached = 'easy';
+  bossActive = false;
   
   if (questionTimer) {
     clearInterval(questionTimer);
@@ -1260,20 +1505,30 @@ function restartGame() {
 
 function gameLoop() {
   if (!gameRunning) { requestAnimationFrame(gameLoop); return; }
+  
   handlePlayerMovement();
   updateEnemies();
   updateBullets();
 
-  if (player.spirit < 100) player.spirit = Math.min(100, player.spirit + 0.3);
+  // Spirit regeneration
+  if (player.spirit < 100) player.spirit = Math.min(100, player.spirit + 0.4);
+
+  // Dynamic enemy spawning based on wave
+  const spawnInterval = Math.max(400, 1500 - (wave * 60)); // Spawn nhanh hơn
+  if (Date.now() - lastEnemySpawn > spawnInterval) {
+    spawnEnemy();
+    lastEnemySpawn = Date.now();
+  }
 
   updateUI();
   checkGameOver();
   requestAnimationFrame(gameLoop);
 }
 
-window.addEventListener('load', () => { initGame(); });
+window.addEventListener('load', () => { 
+  initGame(); 
+  lastEnemySpawn = Date.now();
+});
 </script>
 </body>
 </html>
-
-
