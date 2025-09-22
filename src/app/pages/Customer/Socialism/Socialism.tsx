@@ -3,7 +3,7 @@ export default function SocialismPage() {
     <div
       className="min-h-screen bg-cover bg-center bg-fixed relative overflow-hidden"
       style={{
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1587578133606-85b1fe1bdb4b?w=1920&h=1080&fit=crop')`,
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.4)), url('https://image.luatvietnam.vn/uploaded/twebp/images/original/2023/06/22/Nhung-dac-trung-co-ban-cua-chu-nghia-xa-hoi_2206171404.jpeg')`,
         backgroundPosition: "center",
         backgroundSize: "cover",
       }}

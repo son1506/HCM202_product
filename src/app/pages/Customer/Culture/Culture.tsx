@@ -3,7 +3,7 @@ export default function CulturePage() {
     <div
       className="min-h-screen bg-cover bg-center bg-fixed relative overflow-hidden"
       style={{
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1920&h=1080&fit=crop')`,
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.4)), url('https://cdn-i.vtcnews.vn/resize/ma/upload/2022/04/26/nn13-02301870.jpg')`,
         backgroundPosition: "center",
         backgroundSize: "cover",
       }}

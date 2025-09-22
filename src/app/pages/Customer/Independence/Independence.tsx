@@ -3,7 +3,7 @@ export default function IndependencePage() {
     <div
       className="min-h-screen bg-cover bg-center bg-fixed relative overflow-hidden"
       style={{
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=1920&h=1080&fit=crop')`,
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.4)), url('https://bcp.cdnchinhphu.vn/334894974524682240/2023/8/22/bac-ho-doc-tuyen-ngon-doc-lap-1692698895402678004155.jpg')`,
         backgroundPosition: "center",
         backgroundSize: "cover",
       }}

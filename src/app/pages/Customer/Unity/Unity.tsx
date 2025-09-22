@@ -3,7 +3,7 @@ export default function UnityPage() {
     <div
       className="min-h-screen bg-cover bg-center bg-fixed relative overflow-hidden"
       style={{
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1569949381669-ecf31ae8e613?w=1920&h=1080&fit=crop')`,
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.4)), url('https://cdn.thuvienphapluat.vn/uploads/phapluat/2022-2/NPDT/301024/khoi-dai-doan-ket-dan-toc-la-gi.jpg')`,
         backgroundPosition: "center",
         backgroundSize: "cover",
       }}

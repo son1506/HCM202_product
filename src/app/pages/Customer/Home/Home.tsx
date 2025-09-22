@@ -3,7 +3,7 @@ export default function Home() {
     <div
       className="min-h-screen bg-cover bg-center bg-fixed relative overflow-hidden"
       style={{
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=1920&h=1080&fit=crop')`,
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.3)), url('https://a.tcnn.vn/uploads/resources/hoainga/images/bh(3).jpg')`,
         backgroundPosition: "center",
         backgroundSize: "cover",
       }}

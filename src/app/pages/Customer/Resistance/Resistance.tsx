@@ -3,7 +3,7 @@ export default function ResistancePage() {
     <div
       className="min-h-screen bg-cover bg-center bg-fixed relative overflow-hidden"
       style={{
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1587578133606-85b1fe1bdb4b?w=1920&h=1080&fit=crop')`,
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.5)), url('https://thuviennguyenvanhuong.vn/wp-content/uploads/2022/12/qdnd016.17-1024x745.jpg')`,
         backgroundPosition: "center",
         backgroundSize: "cover",
       }}

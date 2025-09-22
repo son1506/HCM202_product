@@ -3,7 +3,7 @@ export default function PartyAndStatePage() {
     <div
       className="min-h-screen bg-cover bg-center bg-fixed relative overflow-hidden"
       style={{
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1589578228447-e1a4e481c6c8?w=1920&h=1080&fit=crop')`,
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.4)), url('https://thaitrien.com/wp-content/uploads/2025/02/Thaitrien-Hinhnen3-2-hinh14.png')`,
         backgroundPosition: "center",
         backgroundSize: "cover",
       }}
