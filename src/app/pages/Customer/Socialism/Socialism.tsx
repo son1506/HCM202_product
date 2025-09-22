@@ -3,7 +3,7 @@ export default function SocialismPage() {
     <div
       className="min-h-screen bg-cover bg-center bg-fixed relative overflow-hidden"
       style={{
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.4)), url('https://image.luatvietnam.vn/uploaded/twebp/images/original/2023/06/22/Nhung-dac-trung-co-ban-cua-chu-nghia-xa-hoi_2206171404.jpeg')`,
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.4)), url('https://image.luatvietnam.vn/uploaded/twebp/images/original/2023/06/22/chu-nghia-xa-hoi-mang-den-nhung-gia-tri-tot-dep-cho-con-nguoi_2206171404.jpeg')`,
         backgroundPosition: "center",
         backgroundSize: "cover",
       }}

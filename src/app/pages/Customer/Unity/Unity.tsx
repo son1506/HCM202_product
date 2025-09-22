@@ -3,7 +3,7 @@ export default function UnityPage() {
     <div
       className="min-h-screen bg-cover bg-center bg-fixed relative overflow-hidden"
       style={{
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.4)), url('https://cdn.thuvienphapluat.vn/uploads/phapluat/2022-2/NPDT/301024/khoi-dai-doan-ket-dan-toc-la-gi.jpg')`,
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.4)), url('https://admin.vov.gov.vn/UploadFolder/KhoTin/Images/UploadFolder/VOVVN/Images/sites/default/files/2023-10/Dai%20doan%20ket.jpg')`,
         backgroundPosition: "center",
         backgroundSize: "cover",
       }}
