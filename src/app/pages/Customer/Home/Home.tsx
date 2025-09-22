@@ -3,90 +3,204 @@ export default function Home() {
     <div
       className="min-h-screen bg-cover bg-center bg-fixed relative overflow-hidden"
       style={{
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(255,255,255,0.85)), url('https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Ho_Chi_Minh_-_1946_Portrait.jpg/500px-Ho_Chi_Minh_-_1946_Portrait.jpg')`,
-        backgroundPosition: "center 20%",
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=1920&h=1080&fit=crop')`,
+        backgroundPosition: "center",
         backgroundSize: "cover",
       }}
     >
-      {/* Animated overlay for depth */}
+      {/* Animated overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-red-600/20 via-yellow-500/10 to-transparent animate-pulse"></div>
 
-      {/* Decorative elements */}
-      <div className="absolute top-10 left-10 w-32 h-32 bg-red-600/10 rounded-full blur-xl animate-bounce"></div>
-      <div className="absolute bottom-20 right-20 w-24 h-24 bg-yellow-500/15 rounded-full blur-lg animate-pulse"></div>
+      {/* Vietnamese flag overlay */}
+      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-red-600/10 to-yellow-400/10 pointer-events-none"></div>
 
       <div className="container mx-auto px-4 py-8 relative z-10">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-5xl font-bold text-center mb-8 text-gray-800 drop-shadow-2xl bg-gradient-to-r from-red-700 to-yellow-600 bg-clip-text text-transparent animate-fade-in">
-            Tư Tưởng Hồ Chí Minh
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-6xl font-bold text-center mb-12 text-white drop-shadow-2xl animate-fade-in">
+            TƯ TƯỞNG HỒ CHÍ MINH VỀ
+            <br />
+            <span className="text-yellow-400">ĐỘC LẬP DÂN TỘC VÀ CHỦ NGHĨA XÃ HỘI</span>
           </h1>
 
-          <div className="space-y-8">
-            {/* Chương 4 */}
-            <section className="bg-white/90 backdrop-blur-md rounded-xl shadow-2xl p-8 border border-white/20 hover:shadow-3xl transition-all duration-500 transform hover:scale-[1.02]">
-              <h2 className="text-3xl font-semibold mb-6 text-gray-800 border-b-2 border-red-500 pb-2">
-                Chương 4: Tư tưởng Hồ Chí Minh về Đảng Cộng sản Việt Nam và Nhà nước của dân, do dân, vì dân
-              </h2>
-
-              <div className="space-y-8">
-                {/* Mục 4.2 */}
-                <div className="bg-gradient-to-r from-red-50 to-yellow-50 p-6 rounded-lg border-l-4 border-red-500">
-                  <h3 className="text-xl font-medium mb-4 text-red-800">
-                    4.2. Tư tưởng Hồ Chí Minh về Nhà nước của dân, do dân, vì dân
-                  </h3>
-                  <p className="text-gray-700 mb-2 font-medium">- Nhà nước trong sạch, công minh</p>
-                </div>
-
-                {/* Mục 4.3 */}
-                <div className="bg-gradient-to-r from-yellow-50 to-red-50 p-6 rounded-lg border-l-4 border-yellow-500">
-                  <h3 className="text-xl font-medium mb-4 text-yellow-800">
-                    4.3. Vận dụng tư tưởng Hồ Chí Minh vào công tác xây dựng Đảng và xây dựng nhà nước
-                  </h3>
-
-                  <div className="ml-4 bg-white/50 p-4 rounded-lg mb-4">
-                    <h4 className="text-lg font-semibold mb-3 text-red-700">4.3.1. Xây dựng Đảng thật sự trong sạch, vững mạnh</h4>
-                    <ul className="list-disc list-inside text-gray-700 space-y-3">
-                      <li className="hover:text-red-600 transition-colors">Tăng cường công tác giáo dục chính trị tư tưởng</li>
-                      <li className="hover:text-red-600 transition-colors">Nâng cao năng lực lãnh đạo và sức chiến đấu của Đảng</li>
-                      <li className="hover:text-red-600 transition-colors">Xây dựng đội ngũ cán bộ, đảng viên có phẩm chất và năng lực tốt</li>
-                    </ul>
+          {/* Navigation Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-16">
+            
+            {/* Card 1: Đảng và Nhà nước */}
+            <div className="group relative" onClick={() => window.location.href = '/dang-va-nha-nuoc'}>
+              <div className="absolute inset-0 bg-gradient-to-br from-red-600 to-red-800 rounded-xl blur-lg opacity-75 group-hover:opacity-100 transition-opacity"></div>
+              <div className="relative bg-white/95 backdrop-blur-md rounded-xl shadow-2xl p-8 border border-white/20 hover:shadow-3xl transition-all duration-500 transform hover:scale-105 cursor-pointer">
+                <div className="text-center mb-6">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                    <span className="text-3xl">🏛️</span>
                   </div>
-
-                  <div className="ml-4 bg-white/50 p-4 rounded-lg">
-                    <h4 className="text-lg font-semibold mb-3 text-yellow-700">
-                      4.3.3. Phòng, chống tham nhũng góp phần củng cố niềm tin của nhân dân vào chế độ và vào Đảng
-                    </h4>
-                    <ul className="list-disc list-inside text-gray-700 space-y-3">
-                      <li className="hover:text-yellow-600 transition-colors">Tăng cường công tác kiểm tra, giám sát</li>
-                      <li className="hover:text-yellow-600 transition-colors">Thực hiện nghiêm túc các quy định về phòng chống tham nhũng</li>
-                      <li className="hover:text-yellow-600 transition-colors">Phát huy vai trò giám sát của nhân dân và báo chí</li>
-                    </ul>
-                  </div>
+                  <h3 className="text-2xl font-bold text-red-800 mb-2">
+                    Đảng và Nhà nước
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    Tư tưởng về xây dựng Đảng và Nhà nước của dân, do dân, vì dân
+                  </p>
                 </div>
-              </div>
-            </section>
-
-            <div className="text-center mt-8">
-              <p className="text-sm text-gray-600 bg-white/70 backdrop-blur-sm px-4 py-2 rounded-full inline-block shadow-lg">
-                © {new Date().getFullYear()} - Tư tưởng Hồ Chí Minh
-              </p>
-
-              {/* Button to open the standalone game HTML */}
-              <div className="mt-4">
-                <button
-                  type="button"
-                  onClick={() => { window.location.href = '/game.html'; }}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-full shadow hover:bg-red-700 transition"
-                  aria-label="Mở trò chơi Chiến Sĩ Kháng Chiến">
-                  🎮 Chơi ngay
-                </button>
+                <div className="space-y-2 text-sm text-gray-700">
+                  <p>• Đảng lãnh đạo toàn diện</p>
+                  <p>• Nhà nước của nhân dân</p>
+                  <p>• Chống tham nhũng</p>
+                </div>
               </div>
             </div>
+
+            {/* Card 2: Độc lập dân tộc */}
+            <div className="group relative" onClick={() => window.location.href = '/doc-lap-dan-toc'}>
+              <div className="absolute inset-0 bg-gradient-to-br from-yellow-500 to-yellow-700 rounded-xl blur-lg opacity-75 group-hover:opacity-100 transition-opacity"></div>
+              <div className="relative bg-white/95 backdrop-blur-md rounded-xl shadow-2xl p-8 border border-white/20 hover:shadow-3xl transition-all duration-500 transform hover:scale-105 cursor-pointer">
+                <div className="text-center mb-6">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <span className="text-3xl">🇻🇳</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-yellow-800 mb-2">
+                    Độc lập Dân tộc
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    "Không có gì quý hơn độc lập tự do"
+                  </p>
+                </div>
+                <div className="space-y-2 text-sm text-gray-700">
+                  <p>• Giải phóng dân tộc</p>
+                  <p>• Thống nhất Tổ quốc</p>
+                  <p>• Bảo vệ chủ quyền</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3: Chủ nghĩa xã hội */}
+            <div className="group relative" onClick={() => window.location.href = '/chu-nghia-xa-hoi'}>
+              <div className="absolute inset-0 bg-gradient-to-br from-green-600 to-green-800 rounded-xl blur-lg opacity-75 group-hover:opacity-100 transition-opacity"></div>
+              <div className="relative bg-white/95 backdrop-blur-md rounded-xl shadow-2xl p-8 border border-white/20 hover:shadow-3xl transition-all duration-500 transform hover:scale-105 cursor-pointer">
+                <div className="text-center mb-6">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                    <span className="text-3xl">⭐</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-green-800 mb-2">
+                    Chủ nghĩa Xã hội
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    Xây dựng xã hội công bằng, văn minh
+                  </p>
+                </div>
+                <div className="space-y-2 text-sm text-gray-700">
+                  <p>• Công bằng xã hội</p>
+                  <p>• Phát triển kinh tế</p>
+                  <p>• Xóa đói giảm nghèo</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 4: Đại đoàn kết */}
+            <div className="group relative" onClick={() => window.location.href = '/dai-doan-ket'}>
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl blur-lg opacity-75 group-hover:opacity-100 transition-opacity"></div>
+              <div className="relative bg-white/95 backdrop-blur-md rounded-xl shadow-2xl p-8 border border-white/20 hover:shadow-3xl transition-all duration-500 transform hover:scale-105 cursor-pointer">
+                <div className="text-center mb-6">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-3xl">🤝</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-blue-800 mb-2">
+                    Đại đoàn kết
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    "Đoàn kết, đoàn kết, đại đoàn kết"
+                  </p>
+                </div>
+                <div className="space-y-2 text-sm text-gray-700">
+                  <p>• Đoàn kết dân tộc</p>
+                  <p>• Đoàn kết quốc tế</p>
+                  <p>• Mặt trận thống nhất</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 5: Văn hóa và Con người */}
+            <div className="group relative" onClick={() => window.location.href = '/van-hoa-con-nguoi'}>
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-purple-800 rounded-xl blur-lg opacity-75 group-hover:opacity-100 transition-opacity"></div>
+              <div className="relative bg-white/95 backdrop-blur-md rounded-xl shadow-2xl p-8 border border-white/20 hover:shadow-3xl transition-all duration-500 transform hover:scale-105 cursor-pointer">
+                <div className="text-center mb-6">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
+                    <span className="text-3xl">📚</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-purple-800 mb-2">
+                    Văn hóa & Con người
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    "Con người là yếu tố quyết định"
+                  </p>
+                </div>
+                <div className="space-y-2 text-sm text-gray-700">
+                  <p>• Giáo dục con người</p>
+                  <p>• Văn hóa dân tộc</p>
+                  <p>• Đạo đức cách mạng</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 6: Kháng chiến và Bảo vệ Tổ quốc */}
+            <div className="group relative" onClick={() => window.location.href = '/khang-chien'}>
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-600 to-red-700 rounded-xl blur-lg opacity-75 group-hover:opacity-100 transition-opacity"></div>
+              <div className="relative bg-white/95 backdrop-blur-md rounded-xl shadow-2xl p-8 border border-white/20 hover:shadow-3xl transition-all duration-500 transform hover:scale-105 cursor-pointer">
+                <div className="text-center mb-6">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-orange-100 rounded-full flex items-center justify-center">
+                    <span className="text-3xl">⚔️</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-orange-800 mb-2">
+                    Kháng chiến
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    Chiến tranh nhân dân toàn diện
+                  </p>
+                </div>
+                <div className="space-y-2 text-sm text-gray-700">
+                  <p>• Toàn dân kháng chiến</p>
+                  <p>• Chiến tranh du kích</p>
+                  <p>• Bảo vệ Tổ quốc</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Action Buttons */}
+          <div className="text-center mt-16 space-y-6">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <button
+                type="button"
+                onClick={() => { window.location.href = '/game.html'; }}
+                className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-full shadow-lg hover:from-red-700 hover:to-red-800 transition-all duration-300 transform hover:scale-105 text-lg font-semibold"
+                aria-label="Mở trò chơi Chiến Sĩ Kháng Chiến">
+                🎮 Trò chơi Chiến Sĩ Kháng Chiến
+              </button>
+              
+              <button
+                type="button"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-full shadow-lg hover:from-yellow-600 hover:to-yellow-700 transition-all duration-300 transform hover:scale-105 text-lg font-semibold">
+                📖 Tài liệu học tập
+              </button>
+            </div>
+
+            <p className="text-white/80 bg-black/20 backdrop-blur-sm px-6 py-3 rounded-full inline-block shadow-lg text-lg">
+              "Học tập tư tưởng Hồ Chí Minh - Áp dụng vào thực tiễn cuộc sống"
+            </p>
+          </div>
+
+          {/* Historical Quote */}
+          <div className="mt-16 bg-gradient-to-r from-red-900/50 to-yellow-900/50 backdrop-blur-md rounded-2xl p-8 border border-yellow-400/30">
+            <blockquote className="text-center">
+              <p className="text-2xl text-white font-medium italic mb-4">
+                "Không có gì quý hơn độc lập tự do"
+              </p>
+              <footer className="text-yellow-400 text-lg font-semibold">
+                — Chủ tịch Hồ Chí Minh
+              </footer>
+            </blockquote>
           </div>
         </div>
       </div>
-
-      {/* Styles moved to global CSS: src/app/styles/override.css */}
     </div>
   );
 }
