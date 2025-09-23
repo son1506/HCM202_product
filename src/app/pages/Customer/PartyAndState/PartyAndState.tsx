@@ -257,10 +257,7 @@ export default function PartyAndStatePage() {
                 className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                 🎮 Trò chơi Chiến Sĩ Kháng Chiến
               </button>
-              <button
-                className="px-6 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors">
-                📚 Tài liệu tham khảo
-              </button>
+
             </div>
             
             <div className="bg-black/50 backdrop-blur-md rounded-xl p-6 border border-white/20">

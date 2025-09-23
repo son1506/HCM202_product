@@ -24,7 +24,7 @@ export default function Home() {
 
           {/* Navigation Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-16">
-            
+
             {/* Card 1: Đảng và Nhà nước */}
             <div className="group relative" onClick={() => window.location.href = '/dang-va-nha-nuoc'}>
               <div className="absolute inset-0 bg-gradient-to-br from-red-600 to-red-800 rounded-xl blur-lg opacity-75 group-hover:opacity-100 transition-opacity"></div>
@@ -175,12 +175,7 @@ export default function Home() {
                 aria-label="Mở trò chơi Chiến Sĩ Kháng Chiến">
                 🎮 Trò chơi Chiến Sĩ Kháng Chiến
               </button>
-              
-              <button
-                type="button"
-                className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-full shadow-lg hover:from-yellow-600 hover:to-yellow-700 transition-all duration-300 transform hover:scale-105 text-lg font-semibold">
-                📖 Tài liệu học tập
-              </button>
+
             </div>
 
             <p className="text-white/80 bg-black/20 backdrop-blur-sm px-6 py-3 rounded-full inline-block shadow-lg text-lg">

@@ -448,10 +448,7 @@ export default function CulturePage() {
                 className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors backdrop-blur-md">
                 🎮 Trò chơi Chiến Sĩ Kháng Chiến
               </button>
-              <button
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors backdrop-blur-md">
-                📖 Tài liệu văn hóa
-              </button>
+
             </div>
             
             <div className="bg-gradient-to-r from-purple-900/80 to-blue-800/80 backdrop-blur-md rounded-xl p-8 border border-yellow-400/50">

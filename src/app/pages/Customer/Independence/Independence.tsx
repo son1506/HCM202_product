@@ -300,10 +300,7 @@ export default function IndependencePage() {
                 className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors backdrop-blur-md">
                 🎮 Trò chơi Chiến Sĩ Kháng Chiến
               </button>
-              <button
-                className="px-6 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors backdrop-blur-md">
-                📖 Tài liệu lịch sử
-              </button>
+
             </div>
             
             <div className="bg-gradient-to-r from-red-900/80 to-yellow-800/80 backdrop-blur-md rounded-xl p-8 border border-yellow-400/50">
